@@ -1,4 +1,20 @@
-# Viteburner-template
+# HEY
+
+To kick off, we want to discover and hack as many servers as possible
+
+from home we'll run to open all available nodes
+
+`$ run unlock.js`
+
+After this runs for a while, we'll purchase some 8gb servers
+
+`$ run purchase-server-8gb.js`
+
+these will eventually be replaced:
+
+`$ run upgrade server [currentRam, wantedRam]`
+
+# OG: Viteburner-template
 
 This is a template for a viteburner project. It is a simple example of how to use Viteburner.
 
