@@ -48,5 +48,8 @@ export async function main(ns: NS) {
 
   // run for all other servers
   console.log('Fin! Hosts unlocked!');
-  await crawl(ns);
+  await crawl(
+    ns,
+    nodes.filter((n) => n !== 'home'),
+  );
 }
