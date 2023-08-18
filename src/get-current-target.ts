@@ -9,11 +9,9 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
   const idealTarget = serverList
     .filter((server) => ns.hasRootAccess(server.name))
     .reduce((res, cur) => {
-      if (myHackLevel > 20) {
-        const isLessThanHalfMyHackLevel = cur.hackLevel * 2 < myHackLevel;
-        if (!isLessThanHalfMyHackLevel) {
-          return res;
-        }
+      const isLessThanHalfMyHackLevel = cur.hackLevel * 2 < myHackLevel;
+      if (!isLessThanHalfMyHackLevel) {
+        return res;
       }
 
       const hasMoreMoneyThanRes = cur.maxMoney > res?.maxMoney;
