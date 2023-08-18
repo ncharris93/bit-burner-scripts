@@ -25,8 +25,13 @@ export async function main(ns: NS) {
         return;
       }
 
-      ns.scp('early-hack-template.js', hostname);
-      ns.exec('early-hack-template.js', hostname, 3);
+      const SCRIPT = 'early-hack-template.js';
+      ns.scp(SCRIPT, hostname);
+
+      const scriptMemUsed = ns.getScriptRam(SCRIPT);
+      const maxThreads = Math.floor(ns.getServerMaxRam(hostname) / scriptMemUsed) || 1;
+
+      ns.exec('early-hack-template.js', hostname, maxThreads);
       ++i;
     }
     //Make the script wait for a second before looping again.
