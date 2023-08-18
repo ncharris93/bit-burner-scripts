@@ -1,4 +1,5 @@
 import { NS } from '@ns';
+import { getCurrentTarget } from './get-current-target';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
@@ -31,7 +32,7 @@ export async function main(ns: NS) {
       const scriptMemUsed = ns.getScriptRam(SCRIPT);
       const maxThreads = Math.floor(ns.getServerMaxRam(hostname) / scriptMemUsed) || 1;
 
-      ns.exec('early-hack-template.js', hostname, maxThreads);
+      ns.exec('early-hack-template.js', hostname, maxThreads, getCurrentTarget(ns).name);
       ++i;
     }
     //Make the script wait for a second before looping again.
