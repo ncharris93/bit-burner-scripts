@@ -8,7 +8,7 @@ from home we'll run to open all available nodes
 
 After this runs for a while, we'll purchase some 8gb servers
 
-`$ run purchase-server-8gb.js`
+`$ run purchase-server.js`
 
 these will eventually be replaced:
 
