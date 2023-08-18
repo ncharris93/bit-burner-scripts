@@ -5,6 +5,10 @@ export async function main(ns: NS) {
   // Defines the "target server", which is the server
   // that we're going to hack. In this case, it's "n00dles"
   const target = `${ns.args[0]}`;
+
+  if (!ns.hasRootAccess(target)) {
+    return console.log(`[EHT] No root access for: ${target}`);
+  }
   //const server = ns.getServer()
 
   const log = (...args: any[]) => {
@@ -26,8 +30,6 @@ export async function main(ns: NS) {
   // we'll weaken it before doing anything else
   const securityThresh = ns.getServerMinSecurityLevel(target);
 
-  // Get root access to target server
-  ns.nuke(target);
   let scriptLoopTime = Date.now();
 
   // Infinite loop that continously hacks/grows/weakens the target server
