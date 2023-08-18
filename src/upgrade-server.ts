@@ -20,6 +20,9 @@ export async function main(ns: NS) {
     if (maxCurRam === ramCurrent) {
       return name.includes(prefix);
     }
+    if (maxCurRam === ramWanted) {
+      i++;
+    }
     return false;
   });
 
@@ -61,8 +64,8 @@ export async function main(ns: NS) {
       //const hostname = ns.purchaseServer(`pserv-${ramWanted}-`+ i, ramWanted);
       //ns.scp("early-hack-template.js", hostname);
       //ns.exec("early-hack-template.js", hostname, 3);
-      ++i;
     }
+    ++i;
     //Make the script wait for a second before looping again.
     //Removing this line will cause an infinite loop and crash the game.
     await ns.sleep(100);
