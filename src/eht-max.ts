@@ -20,7 +20,7 @@ export async function main(ns: NS) {
   const ramToKeepFree = 10;
   const scriptMem = ns.getScriptRam(SCRIPT);
 
-  const maxThreads = Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem) || 1;
+  const maxThreads = Math.max(Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem), 1);
 
   console.log({ targetMaxRam, scriptMem, maxThreads });
 

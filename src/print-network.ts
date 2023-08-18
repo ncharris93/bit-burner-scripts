@@ -9,7 +9,7 @@ const logNode = (ns: NS, { depth, hostname }: Deep) => {
   const set = '|\t';
   const prefix = set.repeat(depth);
 
-  console.log(`${set.repeat(depth - 1)}${green + '-'.repeat(depth) + reset}${green} ${hostname}${reset}`);
+  console.log(`${set.repeat(depth - 1)}${green + '-'.repeat(5) + reset}${green} ${hostname}${reset}`);
   console.log(`${prefix}\t${red}${ns.getServerSecurityLevel(hostname)}${reset}`);
   console.log(`${prefix}\t${red}${ns.getServerMoneyAvailable(hostname)}${reset}`);
   console.log(`${prefix}\t${red}${ns.getHackTime(hostname)}${reset}`);
