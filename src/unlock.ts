@@ -37,12 +37,12 @@ export async function main(ns: NS) {
 
     const numPortsNeeded = ns.getServerNumPortsRequired(hn);
     const portsUnlocked = target.openPortCount || 0;
-    const canNuke = numPortsNeeded <= portsUnlocked;
-    if (canNuke) {
+    const canNuke = numPortsNeeded <= portsUnlocked && !target.hostname.includes('pserv-');
+    if (canNuke && !ns.hasRootAccess(hn)) {
       ns.nuke(hn);
     }
   }
 
   console.log('Fin! Hosts unlocked!');
-  void crawl(ns);
+  await crawl(ns);
 }
