@@ -20,10 +20,11 @@ export async function main(ns: NS) {
   const ramToKeepFree = 10;
   const scriptMem = ns.getScriptRam(SCRIPT);
 
-  const maxThreads = Math.max(Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem), 1);
+  const threadsToUse = Math.max(Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem), 1);
 
-  console.log({ targetMaxRam, scriptMem, maxThreads });
+  console.log({ targetMaxRam, scriptMem, threadsToUse });
 
-  ns.exec(SCRIPT, hostname, maxThreads, target);
+  ns.exec(SCRIPT, hostname, threadsToUse, target);
+  ns.exec('watch-for-better-target', hostname);
   console.log(`${hostname} memory left: ${ns.getServerUsedRam(hostname)}`);
 }
