@@ -1,7 +1,7 @@
 import { NS } from '@ns';
 import { getCurrentTarget } from './get-current-target';
 
-export default async function main(ns: NS) {
+export async function main(ns: NS) {
   const currentTarget = getCurrentTarget(ns).name;
 
   while (true) {
