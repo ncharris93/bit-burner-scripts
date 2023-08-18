@@ -25,6 +25,6 @@ export async function main(ns: NS) {
   console.log({ targetMaxRam, scriptMem, threadsToUse });
 
   ns.exec(SCRIPT, hostname, threadsToUse, target);
-  ns.exec('watch-for-better-target', hostname);
+  ns.exec('watch-for-better-target.js', hostname);
   console.log(`${hostname} memory left: ${ns.getServerUsedRam(hostname)}`);
 }
