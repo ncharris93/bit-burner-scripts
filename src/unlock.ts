@@ -43,6 +43,10 @@ export async function main(ns: NS) {
     }
   }
 
+  if (ns.getHackingLevel() < 10) {
+    ns.exec('eht-max.js', 'home');
+  }
+
   console.log('Fin! Hosts unlocked!');
   await crawl(ns);
 }
