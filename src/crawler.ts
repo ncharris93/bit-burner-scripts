@@ -9,15 +9,14 @@ const log = (...args: any[]) => {
   DEBUG && console.log(...args);
 };
 
-export async function crawl(ns: NS) {
-  const list = getNodeArray(ns);
-  console.log('crawling: ', list);
-  const serverList = mapHostToServer(ns, list);
+export async function crawl(ns: NS, hostnames = getNodeArray(ns)) {
+  console.log('crawling: ', hostnames);
+  const serverList = mapHostToServer(ns, hostnames);
 
   /**
    * 1 get ideal hacking target
    */
-  const idealTarget = getCurrentTarget(ns, list);
+  const idealTarget = getCurrentTarget(ns, hostnames);
   console.log({ idealTarget });
 
   /**
