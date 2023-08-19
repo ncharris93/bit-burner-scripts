@@ -10,9 +10,6 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
   const serverList = mapHostToServer(ns, hostnames);
   const targetList = serverList.filter((server) => ns.hasRootAccess(server.name) && server.name !== 'home');
 
-  //   const n00dles = targetList.find((server) => server.name === 'n00dles') || ({} as NCH_Server);
-
-  console.log({ targetList });
   const idealTarget = targetList.reduce((res, cur) => {
     const lessThanHalfHack = cur.hackLevel * 2 <= myHackLevel;
     const lessThanHack = cur.hackLevel < myHackLevel;
@@ -24,13 +21,11 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
     }
 
     const hasMoreMoneyThanRes = cur.maxMoney > (res?.maxMoney || 0);
-    console.log({ cur, hasMoreMoneyThanRes });
     if (hasMoreMoneyThanRes) {
       return cur;
     }
     return res;
   }, {} as NCH_Server);
-  //   }, n00dles);
 
   const objectIsEmpty = Object.keys(idealTarget).length === 0;
   const res = objectIsEmpty ? undefined : idealTarget;
