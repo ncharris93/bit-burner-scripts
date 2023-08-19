@@ -4,6 +4,8 @@
 
 import { NS } from '@ns';
 import { getCurrentTarget } from './get-current-target';
+import { getPriorityTargetList } from './get-priority-target-list';
+import { isNewGame } from './utils';
 
 const SCRIPT = 'early-hack-template.js';
 
@@ -29,6 +31,14 @@ export async function main(ns: NS) {
   const threadsToUse = Math.max(Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem), 1);
 
   console.log({ targetMaxRam, scriptMem, threadsToUse });
+
+  if (isNewGame(ns)) {
+    const list = await getPriorityTargetList(ns, 2);
+    ns.exec(SCRIPT, hostname, threadsToUse / 2, list[0].name);
+    ns.exec(SCRIPT, hostname, threadsToUse / 2, list[1].name);
+    ns.exec('watch-for-better-target.js', hostname);
+    return console.log(`${hostname} memory left: ${ns.getServerUsedRam(hostname)}`);
+  }
 
   ns.exec(SCRIPT, hostname, threadsToUse, target);
   ns.exec('watch-for-better-target.js', hostname);
