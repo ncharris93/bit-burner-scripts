@@ -16,6 +16,14 @@ const logNode = (ns: NS, { depth, hostname: host }: Deep) => {
   const openPorts = server.openPortCount || 0;
   const hasEnoughPortsToHack = openPorts >= numReqPorts;
   const moneyTimeRato = ns.getServerMaxMoney(host) / ns.getHackTime(host);
+  //   const gas = ns.growthAnalyzeSecurity(threads);
+  //   const gas1 = ns.growthAnalyze();
+  const growTime = ns.getGrowTime(host);
+  //   const gvalue = ns.getServerGrowth(host);
+  const cores = server.cpuCores;
+  const gvalue = server.serverGrowth;
+  const thing = server.ramUsed;
+  const remainingRam = server.maxRam - server.ramUsed;
 
   const c = {
     port: getColor(hasEnoughPortsToHack),
@@ -34,6 +42,9 @@ const logNode = (ns: NS, { depth, hostname: host }: Deep) => {
   console.log(`${prefix}\t${c.bkdr}BKDR: ${server.backdoorInstalled}${reset}`);
   console.log(`${prefix}\t${c.admin}Admin: ${server.hasAdminRights}${reset}`);
   console.log(`${prefix}\t${c.mtr}$/T: ${moneyTimeRato}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/T: ${ns.hackAnalyze(host)}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/T: ${ns.growthAnalyze(host, 1000)}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/T: ${ns.weakenAnalyze(1000)}${reset}`);
 };
 
 type Deep = {

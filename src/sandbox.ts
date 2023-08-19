@@ -1,10 +1,10 @@
 import { NS } from '@ns';
-import { printNodeNetwork } from './print-network';
-import { getPriorityTargetList } from './get-priority-target-list';
+import { printPathToTarget } from './print-path-to-target';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
   //   printNodeNetwork(ns);
-  const list = await getPriorityTargetList(ns);
-  ns.print(list);
+  //   const list = printPathToTarget(ns);
+  const list = ns.getPurchasedServerMaxRam();
+  ns.print({ maxServerRam: list });
 }
