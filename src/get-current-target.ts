@@ -1,25 +1,39 @@
 import { NS } from '@ns';
 
 import { getNodeArray } from './get-node-array';
-import { mapHostToServer } from './map-host-to-server';
+import { NCH_Server, mapHostToServer } from './map-host-to-server';
+import { isNewGame } from './utils';
 
-export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns)) => {
+export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns)): NCH_Server | undefined => {
   const myHackLevel = ns.getHackingLevel();
-  const serverList = mapHostToServer(ns, hostnames);
 
+  const serverList = mapHostToServer(ns, hostnames);
   const targetList = serverList.filter((server) => ns.hasRootAccess(server.name) && server.name !== 'home');
+
+  //   const n00dles = targetList.find((server) => server.name === 'n00dles') || ({} as NCH_Server);
+
+  console.log({ targetList });
   const idealTarget = targetList.reduce((res, cur) => {
-    const isLessThanHalfMyHackLevel = cur.hackLevel * 2 < myHackLevel;
+    const lessThanHalfHack = cur.hackLevel * 2 <= myHackLevel;
+    const lessThanHack = cur.hackLevel < myHackLevel;
+    const shouldCheckHalf = isNewGame(ns);
+    const isLessThanHalfMyHackLevel = shouldCheckHalf ? lessThanHalfHack : lessThanHack;
+
     if (!isLessThanHalfMyHackLevel) {
       return res;
     }
 
-    const hasMoreMoneyThanRes = cur.maxMoney > res?.maxMoney;
+    const hasMoreMoneyThanRes = cur.maxMoney > (res?.maxMoney || 0);
+    console.log({ cur, hasMoreMoneyThanRes });
     if (hasMoreMoneyThanRes) {
       return cur;
     }
     return res;
-  }, targetList[0]);
+  }, {} as NCH_Server);
+  //   }, n00dles);
 
-  return idealTarget;
+  const objectIsEmpty = Object.keys(idealTarget).length === 0;
+  const res = objectIsEmpty ? undefined : idealTarget;
+
+  return res;
 };

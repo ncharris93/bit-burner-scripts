@@ -46,6 +46,8 @@ export async function main(ns: NS) {
   // run for home specifically
   ns.exec('eht-max.js', 'home');
 
+  await ns.sleep(2000); // hack for race condition killing scripts
+
   // run for all other servers
   console.log('Fin! Hosts unlocked!');
   await crawl(

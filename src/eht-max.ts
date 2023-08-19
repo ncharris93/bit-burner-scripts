@@ -11,8 +11,14 @@ const SCRIPT = 'early-hack-template.js';
 export async function main(ns: NS) {
   //const target = ns.getServer(ns.args[0])
   const hostname = 'home';
-  const target = getCurrentTarget(ns).name;
-  ns.killall(hostname);
+  const target = getCurrentTarget(ns)?.name;
+  if (!target) {
+    return console.log('NO TARGET???');
+  }
+  //   const server = ns.getServer(hostname);
+  console.log('KILLING ALL ON HOME');
+
+  //   ns.killall(hostname);
 
   const usedRam = ns.getServerUsedRam(hostname);
   const targetMaxRam = ns.getServerMaxRam(hostname);
