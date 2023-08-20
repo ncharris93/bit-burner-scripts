@@ -32,11 +32,13 @@ export async function main(ns: NS) {
 
   console.log({ targetMaxRam, scriptMem, threadsToUse });
 
+
   if (isNewGame(ns)) {
     const list = await getPriorityTargetList(ns, 2);
     ns.exec(SCRIPT, hostname, threadsToUse / 2, list[0].name);
     ns.exec(SCRIPT, hostname, threadsToUse / 2, list[1].name);
     ns.exec('watch-for-better-target.js', hostname);
+    ns.exec('purchase-server.js', hostname);
     return console.log(`${hostname} memory left: ${ns.getServerUsedRam(hostname)}`);
   }
 
