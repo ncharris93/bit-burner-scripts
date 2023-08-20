@@ -2,7 +2,8 @@ import { NS } from '@ns';
 
 export async function main(ns: NS) {
   const target = ns.args[0] as string;
-  return ns.weaken(target);
+  await ns.weaken(target);
+  console.log(new Date().getTime(), 'DONE WEAKEN');
 
   //   const secLevel = ns.getServerSecurityLevel(target);
   //   const min = ns.getServerMinSecurityLevel(target);
