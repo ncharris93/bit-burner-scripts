@@ -42,9 +42,9 @@ const logNode = (ns: NS, { depth, hostname: host }: Deep) => {
   console.log(`${prefix}\t${c.bkdr}BKDR: ${server.backdoorInstalled}${reset}`);
   console.log(`${prefix}\t${c.admin}Admin: ${server.hasAdminRights}${reset}`);
   console.log(`${prefix}\t${c.mtr}$/T: ${moneyTimeRato}${reset}`);
-  console.log(`${prefix}\t${c.mtr}$/T: ${ns.hackAnalyze(host)}${reset}`);
-  console.log(`${prefix}\t${c.mtr}$/T: ${ns.growthAnalyze(host, 1000)}${reset}`);
-  console.log(`${prefix}\t${c.mtr}$/T: ${ns.weakenAnalyze(1000)}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/hAn: ${ns.hackAnalyze(host)}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/gAn 1k: ${ns.growthAnalyze(host, 1000)}${reset}`);
+  console.log(`${prefix}\t${c.mtr}$/wAn 1k: ${ns.weakenAnalyze(1000)}${reset}`);
 };
 
 type Deep = {
@@ -55,6 +55,7 @@ type Deep = {
 const getDeep = (names: string[], depth: number) => names.map((name) => ({ hostname: name, depth }));
 
 export function printNodeNetwork(ns: NS) {
+  const depthToPrint = parseInt(`${ns.args[0] || 9999}`);
   const queue: Deep[] = ns
     .scan()
     .filter((name) => !name.includes('pserv-'))
@@ -70,7 +71,11 @@ export function printNodeNetwork(ns: NS) {
     logNode(ns, host);
     const viewableNodes = ns.scan(host.hostname);
     const newNodes = viewableNodes.filter((n) => !processedNodes.includes(n));
-    const newDeep = getDeep(newNodes, host.depth + 1);
+    const nextDepth = host.depth + 1;
+    if (nextDepth > depthToPrint) {
+      continue;
+    }
+    const newDeep = getDeep(newNodes, nextDepth);
     queue.unshift(...newDeep);
   }
 }
