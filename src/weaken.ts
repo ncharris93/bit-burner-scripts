@@ -1,6 +1,10 @@
 import { NS } from '@ns';
 
 export async function main(ns: NS) {
-  await ns.weaken(ns.args[0] as string);
-  //   await ns.sleep(10_000_000);
+  const target = ns.args[0] as string;
+  return ns.weaken(target);
+
+  //   const secLevel = ns.getServerSecurityLevel(target);
+  //   const min = ns.getServerMinSecurityLevel(target);
+  //   console.log(`[${ns.getHostname()}]: weaken on ${target} resulted in new value of ${secLevel} - min: ${min}`);
 }
