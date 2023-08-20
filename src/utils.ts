@@ -43,8 +43,9 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
     currentMoney = 0;
   }
 
-  let threadCountGuess = 100;
-  const moneyDifference = maxMoney - currentMoney;
+  const threadResolution = 10;
+  let threadCountGuess = 10;
+  //   const moneyDifference = maxMoney - currentMoney;
 
   if (ns.fileExists('formulas.exe', 'home')) {
     console.log('HAVE FORMULAS');
@@ -67,23 +68,81 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
     //    }
     //  }
   } else {
-    console.log('NO FORMULAS');
+    /**
+     * We assume that the growth factor starts from the minimum amount of available dollars
+     */
+    const counter = 0;
+    let loops = 0;
+    //  let loop =
+    //  const availableMoneyCalc = threadCountGuess;
+    //  while (!counter) {
     const growthMultiplier = ns.getServerGrowth(host);
-    const wantedGrowthFactor = Math.ceil(
-      Math.min(maxMoney / ((currentMoney || threadCountGuess) * growthMultiplier), 10_000),
-    );
+    while (true) {
+      // console.log('NO FORMULAS');
+      //  const availableMoneyCalc = currentMoney || threadCountGuess
+      const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / threadCountGuess) * growthMultiplier, 10_000));
+      // const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / availableMoneyCalc) * growthMultiplier, 10_000));
+      // const wantedGrowthFactor = Math.ceil(Math.min(maxMoney / (availableMoneyCalc * growthMultiplier), 10_000));
+      // const thing = ns.growthAnalyzeSecurity(host, multiplier)
+      // const wantedGrowthFactor = Math.ceil(Math.min(maxMoney / (availableMoneyCalc * growthMultiplier), 10_000));
 
-    console.log(`[${host}]`, { growthMultiplier, maxMoney, currentMoney, moneyDifference, wantedGrowthFactor });
-    const threadCount = Math.ceil(ns.growthAnalyze(host, wantedGrowthFactor));
-    console.log(`[${host}]`, { threadCount });
+      const moneyForThreadCountsInCalc = threadCountGuess;
+      const serverMoneyAfterGrowthFactor = moneyForThreadCountsInCalc * wantedGrowthFactor;
+      // const serverMoneyAfterGrowthFactor = currentMoney * wantedGrowthFactor;
 
-    threadCountGuess = threadCount;
+      const doneCalculatingNumThreads = serverMoneyAfterGrowthFactor >= maxMoney;
+      // console.log({
+      //   shouldIncreaseThreads: doneCalculatingNumThreads,
+      //   serverMoneyAfterGrowthFactor,
+      //   maxMoney,
+      //   wantedGrowthFactor,
+      //   threadCountGuess,
+      // });
+
+      if (loops > 1000) {
+        console.log('BREAK WHILE');
+        break;
+      }
+      ++loops;
+
+      if (doneCalculatingNumThreads) {
+        //   const threadCount = Math.ceil(ns.growthAnalyze(host, wantedGrowthFactor));
+        //   threadCountGuess = threadCount;
+        break;
+        //   ++counter;
+      }
+
+      // if (doneCalculatingNumThreads) {
+      //   const threadCount = Math.ceil(ns.growthAnalyze(host, wantedGrowthFactor));
+      //   threadCountGuess = threadCount;
+      //   break;
+      //   //   ++counter;
+      // }
+
+      // const threadCount = Math.ceil(ns.growthAnalyze(host, wantedGrowthFactor));
+      // console.log(`[${host}]`, {
+      //   growthMultiplier,
+      //   maxMoney,
+      //   currentMoney,
+      //   moneyDifference,
+      //   wantedGrowthFactor,
+      //   suggestedThreadCount: threadCount,
+      //   //   incThreadCountBy: threadCount
+      // });
+      threadCountGuess += threadResolution;
+      // threadCountGuess += threadResolution;
+      // threadCountGuess += threadResolution;
+      // threadCountGuess += 10;
+    }
+
+    //  threadCountGuess = threadCountGuess;
   }
 
   const growTime = Math.ceil(ns.getGrowTime(host));
 
   return {
     threadCount: threadCountGuess,
+    //  threadCount: threadCountGuess * 1.1,
     time: growTime,
     timeBuffer: 0,
   };
@@ -108,9 +167,12 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
 // };
 
 export const getIdealHackThreadCountForOneIteration = (ns: NS, host: string): IdealThreadData => {
+  // if(ns.fileExists())
   const singleThreadMultiplier = ns.hackAnalyze(host);
+  //   let a = ns.getHackingMultipliers()
+  //   console.log({ singleThreadMultiplier });
   const threadCount = Math.ceil(1 / singleThreadMultiplier);
-  const getHackTime = Math.ceil(ns.getWeakenTime(host));
+  const getHackTime = Math.ceil(ns.getHackTime(host));
 
   return {
     threadCount,
