@@ -10,13 +10,15 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
   const serverList = mapHostToServer(ns, hostnames);
   const targetList = serverList.filter((server) => ns.hasRootAccess(server.name) && server.name !== 'home');
 
+  //   console.log({ targetList });
   const idealTarget = targetList.reduce((res, cur) => {
     const lessThanHalfHack = cur.hackLevel * 2 <= myHackLevel;
     const lessThanHack = cur.hackLevel < myHackLevel;
     const shouldCheckHalf = isNewGame(ns);
-    const isLessThanHalfMyHackLevel = shouldCheckHalf ? lessThanHalfHack : lessThanHack;
+    const shouldTryHacking = shouldCheckHalf ? lessThanHalfHack : lessThanHack;
 
-    if (!isLessThanHalfMyHackLevel) {
+    //  console.log({ cur, lessThanHalfHack, lessThanHack, shouldCheckHalf, shouldTryHacking });
+    if (!shouldTryHacking) {
       return res;
     }
 

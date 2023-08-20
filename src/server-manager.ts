@@ -4,14 +4,18 @@ import {
   getIdealHackThreadCountForOneIteration,
   getIdealWeakenThreadCountForOneIteration,
 } from './utils';
-import { serverOrchestrator } from './server-orchestrator';
 
+export const getServerData = (ns: NS, host: string) => {
+  return {
+    [host]: {
+      weaken: getIdealWeakenThreadCountForOneIteration(ns, host),
+      hack: getIdealHackThreadCountForOneIteration(ns, host),
+      grow: getIdealGrowThreadCountForOneIteration(ns, host),
+    },
+  };
+};
 /** @param {NS} ns */
 export async function main(ns: NS) {
-  await serverOrchestrator(ns);
-  //   await serverOrchestrator(ns, 'n00dles');
-  return;
-
   const hostnames = [
     'n00dles',
     'foodnstuff',
@@ -22,17 +26,7 @@ export async function main(ns: NS) {
     'iron-gym',
   ];
 
-  const getServerData = (host: string) => {
-    return {
-      [host]: {
-        weaken: getIdealWeakenThreadCountForOneIteration(ns, host),
-        hack: getIdealHackThreadCountForOneIteration(ns, host),
-        grow: getIdealGrowThreadCountForOneIteration(ns, host),
-      },
-    };
-  };
-
-  const serverData = hostnames.map(getServerData);
+  const serverData = hostnames.map((host) => getServerData(ns, host));
 
   console.log({ serverData });
   return;
