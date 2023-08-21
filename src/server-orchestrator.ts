@@ -70,7 +70,12 @@ export const serverOrchestrator = async (
       const data: IdealThreadData = serverData[target][type];
       if (data.threadCount) {
         // ...[] to show parameters
-        ns.exec('HWG.js', host, data.threadCount, ...[type, target, data.timeBuffer, timer, iteration, host]);
+        ns.exec(
+          'HWG.js',
+          host,
+          data.threadCount,
+          ...[type, target, data.timeBuffer, timer, iteration, host, data.threadCount],
+        );
       }
     });
 

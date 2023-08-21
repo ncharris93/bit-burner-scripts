@@ -59,7 +59,7 @@ export async function main(ns: NS) {
   if (isNewGame(ns)) {
     await initServerOrchestrator(ns, 'home', 'n00dles');
   } else {
-    await initServerOrchestrator(ns, 'home');
+    await initServerOrchestrator(ns);
   }
   //   await crawl(
   //  ns,
