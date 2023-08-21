@@ -36,6 +36,7 @@ const logNode = (ns: NS, { depth, hostname: host }: Deep) => {
   console.log(`${set.repeat(depth - 1)}${cyan + '-'.repeat(5) + reset} ${host}${reset}`);
   console.log(`${prefix}\t${red}SEC: ${ns.getServerSecurityLevel(host)}${reset}`);
   console.log(`${prefix}\t${red}$$$: ${ns.formatNumber(ns.getServerMoneyAvailable(host) || 0, 3, 0, true)}${reset}`);
+  console.log(`${prefix}\t${red}$M: ${ns.formatNumber(ns.getServerMaxMoney(host) || 0, 3, 0, true)}${reset}`);
   console.log(`${prefix}\t${red}Htime : ${ns.getHackTime(host)}${reset}`);
   console.log(`${prefix}\t${c.port}REQ ports : ${ns.getServerNumPortsRequired(host)}${reset}`);
   console.log(`${prefix}\t${c.hack}REQ hack : ${ns.getServerRequiredHackingLevel(host)}${reset}`);

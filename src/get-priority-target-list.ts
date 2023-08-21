@@ -6,7 +6,7 @@ import { NCH_Server, mapHostToServer } from './map-host-to-server';
 
 export const getPriorityTargetList = async (
   ns: NS,
-  numTargets = 10,
+  numTargets = 1000,
   hostnames = getNodeArray(ns),
 ): Promise<NCH_Server[]> => {
   const res: string[] = [];
@@ -19,6 +19,7 @@ export const getPriorityTargetList = async (
     //  if (counter > numTargets) {
     //    break;
     //  }
+
     lastList = lastList.filter((name) => !res.includes(name));
     //  console.log({ lastList });
 
@@ -37,7 +38,7 @@ export const getPriorityTargetList = async (
   console.log({ res });
 
   const mappedRes = mapHostToServer(ns, res)
-    .filter((target) => target.maxMoney > 0)
+    .filter((target) => target.maxMoney > 0 || target.maxMem === 0)
     .slice(0, numTargets); //.filter((server) => server.canHack);
 
   console.log({ mappedRes });

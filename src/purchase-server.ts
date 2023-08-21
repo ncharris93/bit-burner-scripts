@@ -32,7 +32,8 @@ export async function main(ns: NS) {
       const scriptMemUsed = ns.getScriptRam(SCRIPT);
       const maxThreads = Math.floor(ns.getServerMaxRam(hostname) / scriptMemUsed) || 1;
 
-      ns.exec('early-hack-template.js', hostname, maxThreads, getCurrentTarget(ns).name);
+      // ns.exec('early-hack-template.js', hostname, maxThreads, getCurrentTarget(ns).name);
+      ns.exec('init-server-orchestrator.js', hostname);
       ++i;
     }
     //Make the script wait for a second before looping again.

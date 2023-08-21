@@ -2,6 +2,30 @@ import { NS } from '@ns';
 
 export const isNewGame = (ns: NS) => ns.getHackingLevel() < 100;
 
+/**
+ *
+ * We want each G/W/H to take a MAX of 1/3rd server RAM
+ * @param ns
+ * @param suggestion
+ * @returns
+ */
+const getMaxThreadCountForIdeal = (ns: NS, suggestion: number) => {
+  const scriptRamCost = ns.getScriptRam('HWG.js');
+  const host = ns.getHostname();
+  const maxServerRam = ns.getServerMaxRam(host);
+  //   const currentRam = ns.getServerUsedRam(host);
+  //   const ramAvailable = maxServerRam - currentRam;
+  const NUM_PROCESSES = 3.1; // H/W/G -- 0.1 for buffer
+  //   const maxThreadsForProcess = Math.floor(maxServerRam / 3.1); // generally the grow script is hungry
+  //   const maxThreadsForProcess = Math.floor(maxServerRam / 3.1);
+  //   const maxThreadsForProcess = Math.floor(maxServerRam / NUM_PROCESSES);
+  //  const maxThreadsForProcess = Math.floor(ramAvailable / scriptRamCost / NUM_PROCESSES);
+  const maxThreadsForProcess = Math.floor(maxServerRam / scriptRamCost / NUM_PROCESSES);
+  const res = Math.min(suggestion, maxThreadsForProcess);
+  //   console.log({ suggestion, maxThreadsForProcess, res, scriptRamCost, host, maxServerRam });
+  return res;
+};
+
 export type IdealThreadData = { threadCount: number; time: number; timeBuffer: number };
 export const getIdealWeakenThreadCountForOneIteration = (ns: NS, host: string): IdealThreadData => {
   // export const getIdealWeakenThreadCountForOneIteration = async (ns: NS, host: string) => {
@@ -29,7 +53,7 @@ export const getIdealWeakenThreadCountForOneIteration = (ns: NS, host: string): 
   const weakenTime = Math.ceil(ns.getWeakenTime(host));
   // const currentWeakness = server
   return {
-    threadCount,
+    threadCount: getMaxThreadCountForIdeal(ns, threadCount),
     time: weakenTime,
     timeBuffer: 0,
   };
@@ -43,7 +67,7 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
     currentMoney = 0;
   }
 
-  const threadResolution = 10;
+  const threadResolution = 25;
   let threadCountGuess = 10;
   //   const moneyDifference = maxMoney - currentMoney;
 
@@ -77,10 +101,12 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
     //  const availableMoneyCalc = threadCountGuess;
     //  while (!counter) {
     const growthMultiplier = ns.getServerGrowth(host);
+    let prevGuess;
     while (true) {
       // console.log('NO FORMULAS');
       //  const availableMoneyCalc = currentMoney || threadCountGuess
-      const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / threadCountGuess) * growthMultiplier, 10_000));
+      const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / threadCountGuess) * growthMultiplier, 100_000));
+      // const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / threadCountGuess) * growthMultiplier, 10_000));
       // const wantedGrowthFactor = Math.ceil(Math.min((maxMoney / availableMoneyCalc) * growthMultiplier, 10_000));
       // const wantedGrowthFactor = Math.ceil(Math.min(maxMoney / (availableMoneyCalc * growthMultiplier), 10_000));
       // const thing = ns.growthAnalyzeSecurity(host, multiplier)
@@ -89,6 +115,11 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
       const moneyForThreadCountsInCalc = threadCountGuess;
       const serverMoneyAfterGrowthFactor = moneyForThreadCountsInCalc * wantedGrowthFactor;
       // const serverMoneyAfterGrowthFactor = currentMoney * wantedGrowthFactor;
+      if (prevGuess === serverMoneyAfterGrowthFactor) {
+        console.log('BREAK HERE???');
+        break;
+      }
+      prevGuess = serverMoneyAfterGrowthFactor;
 
       const doneCalculatingNumThreads = serverMoneyAfterGrowthFactor >= maxMoney;
       // console.log({
@@ -99,7 +130,7 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
       //   threadCountGuess,
       // });
 
-      if (loops > 1000) {
+      if (loops > 100_000) {
         console.log('BREAK WHILE');
         break;
       }
@@ -141,7 +172,7 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
   const growTime = Math.ceil(ns.getGrowTime(host));
 
   return {
-    threadCount: threadCountGuess,
+    threadCount: getMaxThreadCountForIdeal(ns, threadCountGuess),
     //  threadCount: threadCountGuess * 1.1,
     time: growTime,
     timeBuffer: 0,
@@ -175,7 +206,7 @@ export const getIdealHackThreadCountForOneIteration = (ns: NS, host: string): Id
   const getHackTime = Math.ceil(ns.getHackTime(host));
 
   return {
-    threadCount,
+    threadCount: getMaxThreadCountForIdeal(ns, threadCount),
     time: getHackTime,
     timeBuffer: 0,
   };
