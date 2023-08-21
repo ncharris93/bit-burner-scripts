@@ -2,10 +2,12 @@ import { NS } from '@ns';
 import { getServerData } from './server-manager';
 import { getCurrentTarget } from './get-current-target';
 import { IdealThreadData } from './utils';
+import { mapHostToServer } from './map-host-to-server';
 
 export async function main(ns: NS) {
   return serverOrchestrator(ns, `${ns.args[0]}`, `${ns.args[1]}`);
 }
+
 export const serverOrchestrator = async (
   ns: NS,
   target = getCurrentTarget(ns)?.name || 'foodnstuff',
@@ -14,6 +16,7 @@ export const serverOrchestrator = async (
   if (!ns.hasRootAccess(target)) {
     throw new Error(`No root access to ${target}`);
   }
+  console.log('Server Orchestrator: ', { target, host });
   let serverData = getServerData(ns, target);
   console.log(serverData);
 
@@ -23,7 +26,7 @@ export const serverOrchestrator = async (
    * third, we want weaken to finish
    */
   const server = serverData[target];
-  console.log({ server, target });
+  //   console.log({ server, target });
   const threadsUsed = server.grow.threadCount + server.hack.threadCount + server.weaken.threadCount;
   const timesCanRunSupportedByThreads = Math.floor(ns.getServerMaxRam(host) / threadsUsed);
 
@@ -64,8 +67,11 @@ export const serverOrchestrator = async (
     //  console.log({ hackTimeBuffer, growTimeBuffer, weakenTimeBuffer });
     const timer = Date.now();
     serverData = getServerData(ns, target);
+    const sd2 = mapHostToServer(ns, [target]);
+    console.log({ serverData, sd2 });
     //  console.log(`[${target}] [${iteration}] kickoff data: `, serverData[target]);
-    ['hack', 'grow', 'weaken'].forEach((type) => {
+    const MOVES = ['hack', 'grow', 'weaken'];
+    MOVES.forEach((type) => {
       //@ts-expect-error:: mad about keying target
       const data: IdealThreadData = serverData[target][type];
       if (data.threadCount) {
@@ -102,10 +108,11 @@ export const serverOrchestrator = async (
     }
     //   while (!counter) {
     execute(counter);
+    //  break;
 
     //  const maxMoneyTime = server.weaken.time + 50;
     //  const waitTime = Math.min(maxMoneyTime, 10_000);
-    await ns.sleep(500);
+    await ns.sleep(5_000);
     //  await ns.sleep(waitTime);
     //  await ns.sleep(maxMoneyTime);
     //  ++counter;

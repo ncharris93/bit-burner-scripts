@@ -12,8 +12,13 @@ export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
 
       maxMem: ns.getServerMaxRam(host),
       maxMoney: ns.getServerMaxMoney(host),
+      currMoney: ns.getServerMoneyAvailable(host),
+      moneyDiff: ns.getServerMaxMoney(host) - ns.getServerMoneyAvailable(host),
       sec: ns.getServerSecurityLevel(host),
+      minSec: ns.getServerMinSecurityLevel(host),
+      secDiff: ns.getServerSecurityLevel(host) - ns.getServerMinSecurityLevel(host),
       hackLevel: ns.getServerRequiredHackingLevel(host),
+      hackChance: ns.hackAnalyzeChance(host),
       numPortsRequired: ns.getServerNumPortsRequired(host),
       timeToHack: ns.getHackTime(host),
       timeToGrow: ns.getGrowTime(host),

@@ -42,7 +42,7 @@ export async function initServerOrchestrator(ns: NS, host?: string) {
     ns.disableLog('scp');
     ns.scp(filesToCopy, host);
     ns.enableLog('scp');
-    await ns.sleep(5000);
+    await ns.sleep(20_000);
     ns.exec('server-orchestrator.js', host, { threads: 1, ramOverride: orchestratorRAM }, ...[target, host]);
   }
 }
