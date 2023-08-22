@@ -11,6 +11,7 @@ export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
       name: host,
 
       maxMem: ns.getServerMaxRam(host),
+      usedMem: ns.getServerUsedRam(host),
       maxMoney: ns.getServerMaxMoney(host),
       currMoney: ns.getServerMoneyAvailable(host),
       moneyDiff: ns.getServerMaxMoney(host) - ns.getServerMoneyAvailable(host),

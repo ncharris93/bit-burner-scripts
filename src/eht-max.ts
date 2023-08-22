@@ -25,18 +25,18 @@ export async function main(ns: NS) {
   const usedRam = ns.getServerUsedRam(hostname);
   const targetMaxRam = ns.getServerMaxRam(hostname);
   //   const ramToKeepFree = Math.min(10, targetMaxRam * 0.1);
-  const ramToKeepFree = 10;
+  const newGame = isNewGame(ns);
+  const ramToKeepFree = newGame ? 3 : 10;
   const scriptMem = ns.getScriptRam(SCRIPT);
 
   const threadsToUse = Math.max(Math.floor((targetMaxRam - (usedRam + ramToKeepFree)) / scriptMem), 1);
 
   console.log({ targetMaxRam, scriptMem, threadsToUse });
 
-
-  if (isNewGame(ns)) {
+  if (newGame) {
     const list = await getPriorityTargetList(ns, 2);
-    ns.exec(SCRIPT, hostname, threadsToUse / 2, list[0].name);
-    ns.exec(SCRIPT, hostname, threadsToUse / 2, list[1].name);
+    ns.exec(SCRIPT, hostname, Math.floor(threadsToUse), list[0].name);
+    ns.exec(SCRIPT, hostname, Math.floor(threadsToUse), list[1].name);
     ns.exec('watch-for-better-target.js', hostname);
     ns.exec('purchase-server.js', hostname);
     return console.log(`${hostname} memory left: ${ns.getServerUsedRam(hostname)}`);
