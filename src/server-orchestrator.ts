@@ -28,7 +28,8 @@ export const serverOrchestrator = async (
   const server = serverData[target];
   //   console.log({ server, target });
   const threadsUsed = server.grow.threadCount + server.hack.threadCount + server.weaken.threadCount;
-  const timesCanRunSupportedByThreads = Math.floor(ns.getServerMaxRam(host) / threadsUsed);
+  const timesCanRunSupportedByThreads = Math.floor(ns.getServerUsedRam(host) / threadsUsed);
+  //   const timesCanRunSupportedByThreads = Math.floor(ns.getServerMaxRam(host) / threadsUsed);
 
   //   console.log('1');
   //   const totalRamUsedForExecute =
@@ -48,16 +49,16 @@ export const serverOrchestrator = async (
   //  );
 
   //   console.log('2', { hwgRAM, totalRamUsedForExecute2 });
-  const timesCanRunSupportedByRAM = Math.floor(ns.getServerMaxRam(host) / totalRamUsedForExecute);
+  //   const timesCanRunSupportedByRAM = Math.floor(ns.getServerMaxRam(host) / totalRamUsedForExecute);
 
-  const maxTimesToRunOnServer = Math.min(timesCanRunSupportedByRAM, timesCanRunSupportedByThreads);
+  //   const maxTimesToRunOnServer = Math.min(timesCanRunSupportedByRAM, timesCanRunSupportedByThreads);
 
   console.log({
     threadsUsed,
     timesCanRunSupportedByThreads,
     totalRamUsedForExecute,
-    timesCanRunSupportedByRAM,
-    maxTimesToRunOnServer,
+    //  timesCanRunSupportedByRAM,
+    //  maxTimesToRunOnServer,
     scriptSize: ns.getScriptRam('HWG.js'),
   });
 
@@ -67,22 +68,22 @@ export const serverOrchestrator = async (
     //  console.log({ hackTimeBuffer, growTimeBuffer, weakenTimeBuffer });
     const timer = Date.now();
     serverData = getServerData(ns, target);
-    const sd2 = mapHostToServer(ns, [target]);
-    console.log({ serverData, sd2 });
+    //  const sd2 = mapHostToServer(ns, [target]);
+    //  console.log({ serverData, sd2 });
     //  console.log(`[${target}] [${iteration}] kickoff data: `, serverData[target]);
     const MOVES = ['hack', 'grow', 'weaken'];
     MOVES.forEach((type) => {
       //@ts-expect-error:: mad about keying target
       const data: IdealThreadData = serverData[target][type];
-      if (data.threadCount) {
-        // ...[] to show parameters
-        ns.exec(
-          'HWG.js',
-          host,
-          data.threadCount,
-          ...[type, target, data.timeBuffer, timer, iteration, host, data.threadCount],
-        );
-      }
+      // if (data.threadCount) {
+      // ...[] to show parameters
+      ns.exec(
+        'HWG.js',
+        host,
+        data.threadCount,
+        ...[type, target, data.timeBuffer, timer, iteration, host, data.threadCount],
+      );
+      // }
     });
 
     return;
@@ -100,12 +101,12 @@ export const serverOrchestrator = async (
     //  console.log({ ramRemaining, totalRamUsedForExecute, serverHasEnoughMemoryForAnotherRun });
     //  console.log({ serverHasEnoughMemoryForAnotherRun });
 
-    if (!serverHasEnoughMemoryForAnotherRun) {
-      // console.log(`SLEEPING: ${exeTimeDiff}`);
-      await ns.sleep(5000);
-      // await ns.sleep(exeTimeDiff);
-      continue;
-    }
+    //  if (!serverHasEnoughMemoryForAnotherRun) {
+    //    // console.log(`SLEEPING: ${exeTimeDiff}`);
+    //    await ns.sleep(5000);
+    //    // await ns.sleep(exeTimeDiff);
+    //    continue;
+    //  }
     //   while (!counter) {
     execute(counter);
     //  break;

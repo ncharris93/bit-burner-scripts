@@ -22,7 +22,7 @@ const getMaxThreadCountForIdeal = (ns: NS, suggestion: number) => {
   //  const maxThreadsForProcess = Math.floor(ramAvailable / scriptRamCost / NUM_PROCESSES);
   const maxThreadsForProcess = Math.floor(maxServerRam / scriptRamCost / NUM_PROCESSES);
   const res = Math.min(suggestion, maxThreadsForProcess);
-  console.log({ scriptRamCost, host, maxServerRam, NUM_PROCESSES, maxThreadsForProcess, suggestion, res });
+  //   console.log({ scriptRamCost, host, maxServerRam, NUM_PROCESSES, maxThreadsForProcess, suggestion, res });
   //   console.log({ suggestion, maxThreadsForProcess, res, scriptRamCost, host, maxServerRam });
   return res;
 };
@@ -219,7 +219,7 @@ export const getIdealHackThreadCountForOneIteration = (ns: NS, host: string): Id
   //   console.log({ singleThreadMultiplier });
   const threadCount = Math.ceil(1 / singleThreadMultiplier);
   const hackTime = Math.ceil(ns.getHackTime(host));
-  console.log({ singleThreadMultiplier, threadCount, getHackTime: hackTime });
+  //   console.log({ singleThreadMultiplier, threadCount, getHackTime: hackTime });
 
   return {
     threadCount: getMaxThreadCountForIdeal(ns, threadCount),

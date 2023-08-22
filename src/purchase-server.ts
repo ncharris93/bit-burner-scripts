@@ -19,7 +19,10 @@ export async function main(ns: NS) {
   // amount of servers
   while (i < ns.getPurchasedServerLimit()) {
     // Check if we have enough money to purchase a server
-    if (ns.getServerMoneyAvailable('home') > ns.getPurchasedServerCost(ram)) {
+    const serverCost = ns.getPurchasedServerCost(ram);
+    const moneyAvailable = ns.getServerMoneyAvailable('home');
+    //  console.log({ serverCost, moneyAvailable, diff: moneyAvailable - serverCost });
+    if (moneyAvailable > serverCost) {
       const hostname = ns.purchaseServer(`pserv-${ram}-${i}`, +ram);
       if (!hostname) {
         console.log('NO SERVER??', hostname);
@@ -32,12 +35,15 @@ export async function main(ns: NS) {
       const scriptMemUsed = ns.getScriptRam(SCRIPT);
       const maxThreads = Math.floor(ns.getServerMaxRam(hostname) / scriptMemUsed) || 1;
 
-      // ns.exec('early-hack-template.js', hostname, maxThreads, getCurrentTarget(ns).name);
-      ns.exec('init-server-orchestrator.js', hostname);
+      if (ram < 64) {
+        ns.exec('early-hack-template.js', hostname, maxThreads, getCurrentTarget(ns)?.name);
+      } else {
+        ns.exec('init-server-orchestrator.js', hostname);
+      }
       ++i;
     }
     //Make the script wait for a second before looping again.
     //Removing this line will cause an infinite loop and crash the game.
-    await ns.sleep(1000);
+    await ns.sleep(5_000);
   }
 }
