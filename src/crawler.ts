@@ -30,6 +30,7 @@ export async function crawl(ns: NS, hostnames = getNodeArray(ns)) {
   /**
    * 2 update all scripts on all servers to target new hacking target
    */
+  //   console.log({ serverList, targets });
   for (const hostname of serverList) {
     const targetName = targets[targetIndex]?.name;
     if (!targetName) {
@@ -39,7 +40,7 @@ export async function crawl(ns: NS, hostnames = getNodeArray(ns)) {
     const scriptMemUsed = ns.getScriptRam(SCRIPT);
     const maxThreads = Math.floor(hostname.maxMem / scriptMemUsed) || 1;
 
-    ns.scp(SCRIPT, targetName);
+    ns.scp(SCRIPT, targetName, 'home');
 
     if (!ns.hasRootAccess(targetName)) {
       continue;

@@ -28,14 +28,14 @@ export const getPriorityTargetList = async (
     if (!target) {
       break;
     }
-    console.log({ nextTarget: target.name, money: target.maxMoney, hack: target.hackLevel });
+    //  console.log({ nextTarget: target.name, money: target.maxMoney, hack: target.hackLevel });
     //  console.log({ target });
     res.push(target.name);
     //  console.log({ currentRes: JSON.stringify(res) });
     //  await ns.sleep(100);
   }
 
-  console.log({ res });
+  //   console.log({ res });
 
   const mappedRes = mapHostToServer(ns, res)
     .filter((target) => target.maxMoney > 0 || target.maxMem === 0)
