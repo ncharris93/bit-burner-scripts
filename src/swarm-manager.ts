@@ -65,11 +65,14 @@ export async function swarmManager(ns: NS) {
   let counter = 0;
   let methodCycleCounter = 0;
 
-  const getThreadCounter = () => ({
-    hack: t.hack.threadCount,
-    weaken: t.weaken.threadCount,
-    grow: t.grow.threadCount,
-  });
+  const getThreadCounter = () => {
+    const t = getServerData(ns, target.name)[target.name];
+    return {
+      hack: t.hack.threadCount,
+      weaken: t.weaken.threadCount,
+      grow: t.grow.threadCount,
+    };
+  };
 
   let threadCounter = getThreadCounter();
   //   console.log({ threadCounter: { ...threadCounter } });
@@ -78,7 +81,7 @@ export async function swarmManager(ns: NS) {
 
   const threadCount = () => t[currentMethod()].threadCount;
 
-  //   console.log({ myServers });
+  console.log({ myServers });
 
   while (getNetworkRamRemaining() > 0) {
     const maxServerThreads = Math.floor(serverRamRemaining / scriptRam);
