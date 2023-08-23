@@ -30,6 +30,11 @@ export async function serverUpgradeManager(ns: NS) {
     return;
   }
 
+  if (maxFullUpgradeRam < 4) {
+    console.log('No point in running a <4 GB Server, Eh?');
+    return;
+  }
+
   const notYetBoughtServers = !pserv;
   if (notYetBoughtServers) {
     Array.from({ length: serverLimit }).forEach((_, i) => {
