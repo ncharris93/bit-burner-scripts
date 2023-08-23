@@ -71,8 +71,7 @@ export const serverOrchestrator = async (
     //  const sd2 = mapHostToServer(ns, [target]);
     //  console.log({ serverData, sd2 });
     //  console.log(`[${target}] [${iteration}] kickoff data: `, serverData[target]);
-    const MOVES = ['hack', 'grow', 'weaken'];
-    MOVES.forEach((type) => {
+    ['hack', 'grow', 'weaken'].forEach((type) => {
       //@ts-expect-error:: mad about keying target
       const data: IdealThreadData = serverData[target][type];
       // if (data.threadCount) {
