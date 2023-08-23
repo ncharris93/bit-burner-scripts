@@ -1,6 +1,6 @@
 import { NS } from '@ns';
 import { getNodeArray } from './get-node-array';
-import { mapHostToServer } from './map-host-to-server';
+import { NCH_Server, mapHostToServer } from './map-host-to-server';
 import { getCurrentTarget } from './get-current-target';
 import { getServerData } from './server-manager';
 import { HWG } from './types';
@@ -13,18 +13,23 @@ export async function main(ns: NS) {
   return swarmManager(ns);
 }
 
+const TIME_BETWEEN_ITERATIONS = 10_000;
+
 export async function swarmManager(ns: NS) {
+  const scriptRam = ns.getScriptRam('HWG.js');
   const allNodes = getNodeArray(ns);
-  const myServers = mapHostToServer(ns, allNodes).filter((s) => s.maxMem > 0 && s.canHack);
+  const serverFilter = (s: NCH_Server) => s.maxMem > scriptRam && s.canHack;
+  const myServers = mapHostToServer(ns, allNodes).filter(serverFilter);
 
   const homeRamToSpare = 10;
   const totalMemoryToUse = myServers.reduce((res, cur) => (res += cur.maxMem), 0) - homeRamToSpare;
   //   console.log({ totalMemoryToUse });
   const getNetworkRamRemaining = () =>
     mapHostToServer(ns, allNodes)
-      .filter((s) => s.maxMem > 0 && s.canHack)
+      .filter(serverFilter)
       .reduce((res, cur) => (res += cur.maxMem), 0) - homeRamToSpare;
 
+  console.log({ scriptRam });
   const target = getCurrentTarget(ns);
   if (!target) {
     throw new Error('No target?');
@@ -32,7 +37,7 @@ export async function swarmManager(ns: NS) {
 
   const targetData = getServerData(ns, target?.name);
   const t = targetData[target.name];
-  const scriptRam = ns.getScriptRam('HWG.js');
+
   const totalRamNeeded = (t.grow.threadCount + t.hack.threadCount + t.weaken.threadCount) * scriptRam;
 
   const canFullyExecuteCycle = totalRamNeeded <= totalMemoryToUse;
@@ -58,6 +63,7 @@ export async function swarmManager(ns: NS) {
 
   let serverRamRemaining = getServerRamRemaining();
   let counter = 0;
+  let methodCycleCounter = 0;
 
   const getThreadCounter = () => ({
     hack: t.hack.threadCount,
@@ -72,9 +78,8 @@ export async function swarmManager(ns: NS) {
 
   const threadCount = () => t[currentMethod()].threadCount;
 
-  /**
-   * TODO: write a fn that gets currentNetworkRamRemaining for the while loop
-   */
+  //   console.log({ myServers });
+
   while (getNetworkRamRemaining() > 0) {
     const maxServerThreads = Math.floor(serverRamRemaining / scriptRam);
     const numThreadsForServer = Math.min(Math.floor(maxServerThreads), threadCount(), threadCounter[currentMethod()]);
@@ -83,10 +88,30 @@ export async function swarmManager(ns: NS) {
      * TODO this needs tweaking, should check if there is enough ram on the given host to run the job, and if not, wait(?)
      */
     if (numThreadsForServer <= 0) {
-      // console.log('Not enough threads for server... sleeping');
+      // ++hostIndex;
+      console.log('Not enough threads for server... trying next host');
+      //     ,{
+      //   hostIndex,
+      //   numThreadsForServer,
+      //   maxServerThreads,
+      //   serverRamRemaining,
+      //   scriptRam,
+      // });
+      // if (numThreadsForServer === 0) {
+      //   console.log('No threads available, trying next server');
+      ++hostIndex;
+      serverRamRemaining = getServerRamRemaining();
+
+      // console.log({ hostIndex, get: getServerRamRemaining(), serverRamLeft: serverRamRemaining, host: host() });
+      // }
+      // await ns.sleep(1_000);
       await ns.sleep(10_000);
       continue;
     }
+    //  if (numThreadsForServer === 0) {
+    //    console.log('No threads available, trying next server');
+    //    ++hostIndex;
+    //  }
     const amountOfRamUsed = numThreadsForServer * scriptRam;
     //  console.log({
     //    host: host().name,
@@ -143,7 +168,8 @@ export async function swarmManager(ns: NS) {
 
       const isNewSererCycle = host().name === 'home';
       if (isNewSererCycle) {
-        const sleepTime = t.weaken.time / 4; // TODO 4 is a little arbitrary
+        const sleepTime = t.weaken.time - TIME_BETWEEN_ITERATIONS * methodCycleCounter + 50; // 50 is a buffer?
+        methodCycleCounter = 0;
         console.log(`Hit new serer cycle, sleeping for ${sleepTime}`);
         await ns.sleep(sleepTime);
       }
@@ -155,16 +181,17 @@ export async function swarmManager(ns: NS) {
       ++methodIndex;
       const startingNewCycle = currentMethod() === 'hack';
       if (startingNewCycle) {
-        //   console.log('New Method Cycle, sleeping...');
+        ++methodCycleCounter;
+        console.log('New Method Cycle, sleeping...', { TIME_BETWEEN_ITERATIONS });
         threadCounter = getThreadCounter();
-        await ns.sleep(10_000);
+        await ns.sleep(TIME_BETWEEN_ITERATIONS);
       }
     }
 
     ++counter;
   }
 
-  //   console.log('Whelp...this is awkward...');
+  console.log('Whelp...this is awkward...');
 
   // []
   //  const execute = (iteration: number) => {
