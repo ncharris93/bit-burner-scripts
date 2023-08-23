@@ -15,6 +15,7 @@ export async function main(ns: NS) {
     'server-manger',
     'server-orchestrator',
     'server-upgrade-manager',
+    'swarm-manager',
   ];
 
   const res = {};
