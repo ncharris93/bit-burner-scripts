@@ -13,8 +13,8 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
   //   console.log({ targetList });
   const idealTarget = targetList.reduce((res, cur) => {
     const lessThanHalfHack = cur.hackLevel * 2 <= myHackLevel;
-    const lessThanHack = cur.hackLevel < myHackLevel;
-    const shouldCheckHalf = isNewGame(ns);
+    const lessThanHack = cur.hackLevel <= myHackLevel;
+    const shouldCheckHalf = !isNewGame(ns);
     const shouldTryHacking = shouldCheckHalf ? lessThanHalfHack : lessThanHack;
 
     //  console.log({ cur, lessThanHalfHack, lessThanHack, shouldCheckHalf, shouldTryHacking });
