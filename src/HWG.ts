@@ -48,11 +48,24 @@ export async function main(ns: NS) {
       } [${type}]: fin. res: ${res}, ${extra}`,
     );
   if (type === 'hack') {
-    //   console.log(
-    //       `[${iterationID}] [${ns.getHostname()}][${target}]:${
-    //         endTime - startTime
-    //       } HACK COMPLETE, $${res}, TIME since last: ${endTime - timer}`,
-    //     );
+    if (res === 0) {
+      ns.tprint(`WARN: [${host} -> ${target}][${iterationID}] Hack Waisted Cycles :( $${res}`);
+    }
+    if (!res) {
+      ns.tprint(`ERROR: [${host} -> ${target}][${iterationID}] Hack Failure`);
+    }
+    ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${res}`);
+    //  ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);
+    console.log('typeof res? ', typeof res);
+
+    //   if(!res) {
+    //    ns.tprint(`ERROR: [${host} -> ${target}] Hack Failure $${res}`)
+    // }
+    //  console.log(
+    //    `[${iterationID}] [${host}][${target}]:${endTime - startTime} HACK ${
+    //      res ? 'SUCCESS' : 'FAILURE'
+    //    }, ${res}, TIME since last: ${endTime - timer}`,
+    //  );
     timer = Date.now();
   }
 }
