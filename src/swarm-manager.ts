@@ -1,9 +1,11 @@
+import { Sleeve } from './../NetscriptDefinitions.d';
 import { NS } from '@ns';
 import { getNodeArray } from './get-node-array';
 import { NCH_Server, mapHostToServer } from './map-host-to-server';
 import { getCurrentTarget } from './get-current-target';
-import { getServerData } from './server-manager';
+import { IdealServerData, getServerData } from './server-manager';
 import { HWG } from './types';
+import { getPriorityTargetList } from './get-priority-target-list';
 
 /**
  * TODO: ideally this could play nice with the server-upgrade-manager?
@@ -16,6 +18,7 @@ export async function main(ns: NS) {
 const TIME_BETWEEN_ITERATIONS = 10_000;
 
 export async function swarmManager(ns: NS) {
+  //   const scriptRam = ns.getScriptRam('weaken.js'); // this is b/c HWG uses same things
   const scriptRam = ns.getScriptRam('HWG.js');
   const allNodes = getNodeArray(ns);
   const serverFilter = (s: NCH_Server) => s.maxMem > scriptRam && s.canHack;
@@ -29,23 +32,54 @@ export async function swarmManager(ns: NS) {
       .filter(serverFilter)
       .reduce((res, cur) => (res += cur.maxMem), 0) - homeRamToSpare;
 
+  const targets = await getPriorityTargetList(ns);
   console.log({ scriptRam });
-  const target = getCurrentTarget(ns);
-  if (!target) {
+  const targetIndex = 0;
+  const target = () => targets[targetIndex % targets.length];
+  //   const
+  //   const target = getCurrentTarget(ns);
+  if (!target()) {
     throw new Error('No target?');
   }
 
-  const targetData = getServerData(ns, target?.name);
-  const t = targetData[target.name];
+  type TargetData = ReturnType<typeof getTargetData>;
+  const getTargetData = () => getServerData(ns, target().name)[target().name];
 
-  const totalRamNeeded = (t.grow.threadCount + t.hack.threadCount + t.weaken.threadCount) * scriptRam;
+  /**
+   * while loop here
+   */
+  const getTotalRamNeeded = (t = getTargetData()) => {
+    const totalRamNeeded = (t.grow.threadCount + t.hack.threadCount + t.weaken.threadCount) * scriptRam;
+    return totalRamNeeded;
+  };
 
-  const canFullyExecuteCycle = totalRamNeeded <= totalMemoryToUse;
+  //   const canExecuteFully = () => {
+  //     const t = getTargetData();
+  //     //  const targetData = getTargetData();
+  //     //  const t = targetData[target().name];
+  //     const totalRamNeeded = getTotalRamNeeded(t);
+  //     const canFullyExecuteCycle = totalRamNeeded <= totalMemoryToUse;
+  //     console.log({ totalRamNeeded, scriptRam, totalMemoryToUse, canFullyExecuteCycle });
+  //     return canFullyExecuteCycle;
+  //   };
+
   //   console.log({ target, targetData, totalRamNeeded, canFullyExecuteCycle });
 
-  if (!canFullyExecuteCycle) {
-    throw new Error('Not yet implemented! TODO');
-  }
+  //   while (!canExecuteFully()) {
+  //     //   console.log(`Unable to fully target ${target().name}, trying next`);
+  //     //  console.log({ target: { ...target() } });
+  //     ++targetIndex;
+  //     console.log({ nextTarget: { ...target() } });
+  //     //  console.log(`New Target: ${target().name}`);
+  //   }
+
+  const numTimesCanExecute = totalMemoryToUse / getTotalRamNeeded();
+  console.log({ numTimesCanExecute });
+
+  const t = getTargetData(); //[target().name];
+  /**
+   * while loop ends here
+   */
 
   const methodCycle = ['hack', 'grow', 'weaken'];
   let methodIndex = 0;
@@ -63,10 +97,10 @@ export async function swarmManager(ns: NS) {
 
   let serverRamRemaining = getServerRamRemaining();
   let counter = 0;
-  let methodCycleCounter = 0;
+  const methodCycleCounter = 0;
 
   const getThreadCounter = () => {
-    const t = getServerData(ns, target.name)[target.name];
+    const t = getTargetData();
     return {
       hack: t.hack.threadCount,
       weaken: t.weaken.threadCount,
@@ -75,7 +109,7 @@ export async function swarmManager(ns: NS) {
   };
 
   let threadCounter = getThreadCounter();
-  //   console.log({ threadCounter: { ...threadCounter } });
+  console.log('Starting Thread Counter:', { threadCounter: { ...threadCounter } });
 
   myServers.forEach(({ name }) => ns.scp('HWG.js', name));
 
@@ -85,174 +119,82 @@ export async function swarmManager(ns: NS) {
 
   while (getNetworkRamRemaining() > 0) {
     const maxServerThreads = Math.floor(serverRamRemaining / scriptRam);
-    const numThreadsForServer = Math.min(Math.floor(maxServerThreads), threadCount(), threadCounter[currentMethod()]);
+    const numThreadsForServer = Math.min(maxServerThreads, threadCount(), threadCounter[currentMethod()]);
 
     /**
      * TODO this needs tweaking, should check if there is enough ram on the given host to run the job, and if not, wait(?)
      */
     if (numThreadsForServer <= 0) {
-      // ++hostIndex;
-      console.log('Not enough threads for server... trying next host');
-      //     ,{
-      //   hostIndex,
-      //   numThreadsForServer,
-      //   maxServerThreads,
-      //   serverRamRemaining,
-      //   scriptRam,
-      // });
-      // if (numThreadsForServer === 0) {
-      //   console.log('No threads available, trying next server');
+      console.log('Not enough threads for server... trying next host', {
+        currentHost: host().name,
+        maxServerThreads,
+        tc: threadCount(),
+        tctr: threadCounter[currentMethod()],
+        serverRamRemaining,
+        scriptRam,
+      });
       ++hostIndex;
       serverRamRemaining = getServerRamRemaining();
 
-      // console.log({ hostIndex, get: getServerRamRemaining(), serverRamLeft: serverRamRemaining, host: host() });
-      // }
-      // await ns.sleep(1_000);
       await ns.sleep(10_000);
       continue;
     }
-    //  if (numThreadsForServer === 0) {
-    //    console.log('No threads available, trying next server');
-    //    ++hostIndex;
-    //  }
     const amountOfRamUsed = numThreadsForServer * scriptRam;
-    //  console.log({
-    //    host: host().name,
-    //    counter,
-    //    numThreadsForServer,
-    //    amountOfRamUsed,
-    //    serverRamRemaining: `${serverRamRemaining}`,
-    //    networkRamRemaining,
-    //    maxServerThreads,
-    //    threadCount: threadCount(),
-    //  });
     serverRamRemaining -= amountOfRamUsed;
     networkRamRemaining -= amountOfRamUsed;
 
-    //  console.log({
-    //    numThreadsForServer,
-    //    amountOfRamUsed,
-    //    currentMethod: currentMethod(),
-    //    host: host().name,
-    //    target: target.name, against  against  against
-    //    serverRamRemaining: `${serverRamRemaining}`,
-    //    networkRamRemaining: `${networkRamRemaining}`,
-    //  });
-
-    //  console.log({ threadCounter });
-    //  console.log({ threadCounter: { ...threadCounter }, currentMethod: currentMethod(), numThreadsForServer });
-    //  console.log(
-    //    `Subtracting ${numThreadsForServer} from the threadCounter's ${currentMethod()} method. Current Value: ${
-    //      threadCounter[currentMethod()]
-    //    }`,
-    //  );
+    //  console.log({ ...threadCounter });
     threadCounter[currentMethod()] -= numThreadsForServer;
-    //  console.log({ threadCounter });
-    console.log({ threadCounter: { ...threadCounter } });
 
     const data = t[currentMethod()];
 
-    console.log(
-      `${host().name} is running ${currentMethod()} with ${numThreadsForServer} threads against target ${target.name}`,
-    );
+    //  console.log(`[${currentMethod()}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
     const timer = Date.now();
     ns.exec(
       'HWG.js',
       host().name,
-      numThreadsForServer,
-      ...[currentMethod(), target.name, data.timeBuffer, timer, counter, host().name, numThreadsForServer],
+      { threads: numThreadsForServer, ramOverride: scriptRam },
+      ...[currentMethod(), target().name, data.timeBuffer, timer, counter, host().name, numThreadsForServer],
     );
 
     const needToUseNextHost = serverRamRemaining <= 0;
-    console.log({ needToUseNextHost });
+    //  console.log({ needToUseNextHost });
     if (needToUseNextHost) {
       ++hostIndex;
       serverRamRemaining = getServerRamRemaining();
 
-      const isNewSererCycle = host().name === 'home';
-      if (isNewSererCycle) {
-        const sleepTime = t.weaken.time - TIME_BETWEEN_ITERATIONS * methodCycleCounter + 50; // 50 is a buffer?
-        methodCycleCounter = 0;
-        console.log(`Hit new serer cycle, sleeping for ${sleepTime}`);
-        await ns.sleep(sleepTime);
-      }
+      /**
+       * TODO if you go through the whole cycle on a single method, then we need to wait the amount of time of the HWG method
+       */
+
+      // const isNewSererCycle = host().name === 'home';
+      // if (isNewSererCycle) {
+      //   //   const extraTime = TIME_BETWEEN_ITERATIONS * methodCycleCounter + 50;
+      //   //   const sleepTime = t.weaken.time - extraTime; // 50 is a buffer?
+      //   methodCycleCounter = 0;
+      //   //   console.log(
+      //   //     `FALSE: Hit new serer cycle, sleeping for ${sleepTime},  this was subtracted from the weaken time: ${extraTime}`,
+      //   //   );
+      //   //   await ns.sleep(sleepTime);
+      // }
     }
 
     const needToUseNextMethod = threadCounter[currentMethod()] <= 0;
-    console.log({ needToUseNextMethod });
     if (needToUseNextMethod) {
       ++methodIndex;
       const startingNewCycle = currentMethod() === 'hack';
+
       if (startingNewCycle) {
-        ++methodCycleCounter;
-        console.log('New Method Cycle, sleeping...', { TIME_BETWEEN_ITERATIONS });
         threadCounter = getThreadCounter();
-        await ns.sleep(TIME_BETWEEN_ITERATIONS);
+        console.log('getting threadCounter', { ...threadCounter });
       }
+      const sleepTime = Math.min(TIME_BETWEEN_ITERATIONS, Math.ceil(t.weaken.time / numTimesCanExecute));
+      console.log(`New HWG Cycle, sleeping for ${sleepTime / 1000}sec`);
+      await ns.sleep(sleepTime);
     }
 
     ++counter;
   }
 
   console.log('Whelp...this is awkward...');
-
-  // []
-  //  const execute = (iteration: number) => {
-  //  //  console.log({ hackTimeBuffer, growTimeBuffer, weakenTimeBuffer });
-  //   const timer = Date.now();
-  //  serverData = getServerData(ns, target);
-  //  //  const sd2 = mapHostToServer(ns, [target]);
-  //  //  console.log({ serverData, sd2 });
-  //  //  console.log(`[${target}] [${iteration}] kickoff data: `, serverData[target]);
-
-  //   ['hack', 'grow', 'weaken'].forEach((type) => {
-  //     //@ts-expect-error:: mad about keying target
-  //     const data: IdealThreadData = targetData[target][type];
-  //     // if (data.threadCount) {
-  //     // ...[] to show parameters
-  //     ns.exec(
-  //       'HWG.js',
-  //       host,
-  //       data.threadCount,
-  //       ...[type, target, data.timeBuffer, timer, iteration, host, data.threadCount],
-  //     );
-  //     // }
-  //   });
-
-  //  return;
-  //   };
-  //
-  //   ns.exec(
-  //  'HWG.js',
-  //  host,
-  //  { threads: t.hack.threadCount },
-  //  'hack',
-  //  target.name,
-  //  t.hack.timeBuffer,
-  //  host,
-  //  t.hack.threadCount,
-  //   );
-  //   ns.exec(
-  //  'HWG.js',
-  //  host,
-  //  { threads: t.hack.threadCount },
-  //  'grow',
-  //  target.name,
-  //  t.hack.timeBuffer,
-  //  host,
-  //  t.hack.threadCount,
-  //   );
-  //   ns.exec(
-  //  'HWG.js',
-  //  host,
-  //  { threads: t.hack.threadCount },
-  //  'weaken',
-  //  target.name,
-  //  t.hack.timeBuffer,
-  //  host,
-  //  t.hack.threadCount,
-  //   );
-  //   ns.hack(target.name, { threads: t.hack.threadCount });
-  //   ns.weaken(target.name, { threads: t.weaken.threadCount });
-  //   ns.grow(target.name, { threads: t.grow.threadCount });
 }

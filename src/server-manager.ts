@@ -10,7 +10,7 @@ const kickoff = (place: number, buffer: number) => {
   //  console.log({ kickoffRes: res, place, buffer });
   return res;
 };
-
+export type IdealServerData = ReturnType<typeof getServerData>;
 export const getServerData = (ns: NS, host: string) => {
   const res = {
     [host]: {
