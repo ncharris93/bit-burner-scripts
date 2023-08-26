@@ -73,10 +73,13 @@ export async function swarmManager(ns: NS) {
   //     //  console.log(`New Target: ${target().name}`);
   //   }
 
-  const numTimesCanExecute = totalMemoryToUse / getTotalRamNeeded();
-  console.log({ numTimesCanExecute });
-
   const t = getTargetData(); //[target().name];
+  const numTimesCanExecute = totalMemoryToUse / getTotalRamNeeded();
+  const numThreadsForFullCycle = Math.floor(
+    numTimesCanExecute * (t.grow.threadCount + t.hack.threadCount + t.weaken.threadCount),
+  );
+  console.log({ numTimesCanExecute, totalMemoryToUse, totalRam: getTotalRamNeeded(), numThreadsForFullCycle });
+
   /**
    * while loop ends here
    */
@@ -116,13 +119,21 @@ export async function swarmManager(ns: NS) {
   const threadCount = () => t[currentMethod()].threadCount;
 
   console.log({ myServers });
+  let cycleStartTime = Date.now();
+  let numThreadsLeftBeforeRest = numThreadsForFullCycle;
+  let startCycleMethod = currentMethod();
 
   while (getNetworkRamRemaining() > 0) {
     const maxServerThreads = Math.floor(serverRamRemaining / scriptRam);
-    const numThreadsForServer = Math.min(maxServerThreads, threadCount(), threadCounter[currentMethod()]);
+    const numThreadsForServer = Math.min(
+      maxServerThreads,
+      threadCount(),
+      threadCounter[currentMethod()],
+      numThreadsLeftBeforeRest,
+    );
 
     /**
-     * TODO this needs tweaking, should check if there is enough ram on the given host to run the job, and if not, wait(?)
+    numthr * TODO this needs tweaking, should check if there is enough ram on the given host to run the job, and if not, wait(?)
      */
     if (numThreadsForServer <= 0) {
       console.log('Not enough threads for server... trying next host', {
@@ -148,14 +159,25 @@ export async function swarmManager(ns: NS) {
 
     const data = t[currentMethod()];
 
-    //  console.log(`[${currentMethod()}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
+    ns.tprint(`[${currentMethod()}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
     const timer = Date.now();
+
     ns.exec(
       'HWG.js',
       host().name,
       { threads: numThreadsForServer, ramOverride: scriptRam },
       ...[currentMethod(), target().name, data.timeBuffer, timer, counter, host().name, numThreadsForServer],
     );
+
+    numThreadsLeftBeforeRest -= numThreadsForServer;
+    if (numThreadsLeftBeforeRest <= 0) {
+      const waitTime = getTargetData()[startCycleMethod].time - (Date.now() - cycleStartTime);
+      ns.tprint(
+        `INFO: MAX num utilized threads reached, waiting for ${waitTime / 1000}s based off ${startCycleMethod} time`,
+      );
+      await ns.sleep(waitTime);
+      numThreadsLeftBeforeRest = numThreadsForFullCycle;
+    }
 
     const needToUseNextHost = serverRamRemaining <= 0;
     //  console.log({ needToUseNextHost });
@@ -167,7 +189,13 @@ export async function swarmManager(ns: NS) {
        * TODO if you go through the whole cycle on a single method, then we need to wait the amount of time of the HWG method
        */
 
-      // const isNewSererCycle = host().name === 'home';
+      const isNewSererCycle = host().name === 'home';
+      if (isNewSererCycle) {
+        startCycleMethod = currentMethod();
+        cycleStartTime = Date.now();
+      }
+      // console.log('Next Host');
+      // await ns.sleep(1000);
       // if (isNewSererCycle) {
       //   //   const extraTime = TIME_BETWEEN_ITERATIONS * methodCycleCounter + 50;
       //   //   const sleepTime = t.weaken.time - extraTime; // 50 is a buffer?
@@ -186,15 +214,15 @@ export async function swarmManager(ns: NS) {
 
       if (startingNewCycle) {
         threadCounter = getThreadCounter();
-        console.log('getting threadCounter', { ...threadCounter });
+        ns.tprint('INFO getting threadCounter', { ...threadCounter });
       }
       const sleepTime = Math.min(TIME_BETWEEN_ITERATIONS, Math.ceil(t.weaken.time / numTimesCanExecute));
-      console.log(`New HWG Cycle, sleeping for ${sleepTime / 1000}sec`);
+      ns.tprint(`INFO New HWG Cycle, sleeping for ${sleepTime / 1000}sec`);
       await ns.sleep(sleepTime);
     }
 
     ++counter;
   }
 
-  console.log('Whelp...this is awkward...');
+  console.log('ERROR Whelp...this is awkward...');
 }

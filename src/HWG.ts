@@ -49,10 +49,10 @@ export async function main(ns: NS) {
     );
   if (type === 'hack') {
     if (res === 0) {
-      ns.tprint(`WARN: [${host} -> ${target}][${iterationID}] Hack Waisted Cycles :( $${res}`);
+      return ns.tprint(`WARN: [${host} -> ${target}][${iterationID}] Hack Waisted Cycles :( $${res}`);
     }
     if (!res) {
-      ns.tprint(`ERROR: [${host} -> ${target}][${iterationID}] Hack Failure`);
+      return ns.tprint(`ERROR: [${host} -> ${target}][${iterationID}] Hack Failure`);
     }
     ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${res}`);
     //  ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);

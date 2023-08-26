@@ -10,6 +10,10 @@ export const isNewGame = (ns: NS) => ns.getHackingLevel() < 100;
  * @returns
  */
 const getMaxThreadCountForIdeal = (ns: NS, suggestion: number) => {
+  if (suggestion === Infinity) {
+    return 10;
+  }
+  return suggestion;
   const scriptRamCost = ns.getScriptRam('HWG.js');
   const host = ns.getHostname();
   const maxServerRam = ns.getServerMaxRam(host);
@@ -23,7 +27,7 @@ const getMaxThreadCountForIdeal = (ns: NS, suggestion: number) => {
   const maxThreadsForProcess = Math.floor(maxServerRam / scriptRamCost / NUM_PROCESSES);
   const res = Math.min(suggestion, maxThreadsForProcess);
   //   console.log({ scriptRamCost, host, maxServerRam, NUM_PROCESSES, maxThreadsForProcess, suggestion, res });
-  //   console.log({ suggestion, maxThreadsForProcess, res, scriptRamCost, host, maxServerRam });
+  console.log({ suggestion, maxThreadsForProcess, res, scriptRamCost, host, maxServerRam });
   return res;
 };
 
@@ -219,7 +223,7 @@ export const getIdealHackThreadCountForOneIteration = (ns: NS, host: string): Id
   //   console.log({ singleThreadMultiplier });
   const threadCount = Math.ceil(1 / singleThreadMultiplier);
   const hackTime = Math.ceil(ns.getHackTime(host));
-  //   console.log({ singleThreadMultiplier, threadCount, getHackTime: hackTime });
+  console.log({ singleThreadMultiplier, threadCount, getHackTime: hackTime });
 
   return {
     threadCount: getMaxThreadCountForIdeal(ns, threadCount),

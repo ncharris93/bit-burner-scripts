@@ -55,12 +55,12 @@ export async function serverUpgradeManager(ns: NS) {
         ram,
       };
     });
-    console.log({ upgradeCatalog: res });
+    //  console.log({ upgradeCatalog: res });
     return res;
   };
   const upgradeCatalog = getUpgradeCatalog();
 
-  console.log({ upgradeCatalog });
+  //   console.log({ upgradeCatalog });
 
   //   const maxUpgradableRam = upgradeCatalog.findLast((server) => server.numCanAfford > serverLimit)?.ram;
   const getMaxUpgradableRam = () =>
@@ -107,26 +107,26 @@ export async function serverUpgradeManager(ns: NS) {
   /**
    * TODO Keep this?
    */
-  //   const getNumberFromPservName = (name: string) => parseInt(name.split('-')[1]);
-  //   const renameServers = () => {
-  //     const servers = getSortedServers();
-  //     console.log({ servers });
-  //     servers.forEach((server) => {
-  //       const serverRamNumber = getNumberFromPservName(server);
-  //       const actualRam = ns.getServerMaxRam(server);
-  //       if (serverRamNumber === actualRam) {
-  //         return;
-  //       }
+  const getNumberFromPservName = (name: string) => parseInt(name.split('-')[1]);
+  const renameServers = () => {
+    const servers = getSortedServers();
+    console.log({ servers });
+    servers.forEach((server) => {
+      const serverRamNumber = getNumberFromPservName(server);
+      const actualRam = ns.getServerMaxRam(server);
+      if (serverRamNumber === actualRam) {
+        return;
+      }
 
-  //       const nextNumberAvailable = getNextAvailablePservIndexForRam(actualRam);
+      const nextNumberAvailable = getNextAvailablePservIndexForRam(actualRam);
 
-  //       // const newName = `pserv-${actualRam}-1`;
-  //       const newName = `pserv-${actualRam}-${nextNumberAvailable}`;
-  //       console.log({ server, newName });
-  //       ns.renamePurchasedServer(server, newName);
-  //     });
-  //   };
-  //   return renameServercosts();
+      // const newName = `pserv-${actualRam}-1`;
+      const newName = `pserv-${actualRam}-${nextNumberAvailable}`;
+      console.log({ server, newName });
+      ns.renamePurchasedServer(server, newName);
+    });
+  };
+  return renameServers();
   /**
    * TODO Keep this?
    */

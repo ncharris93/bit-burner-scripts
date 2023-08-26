@@ -6,6 +6,7 @@ import { crawl } from './crawler';
 import { getNodeArray } from './get-node-array';
 import { initServerOrchestrator } from './init-server-orchestrator';
 import { isNewGame } from './utils';
+import { serverOrchestrator } from './server-orchestrator';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
@@ -47,22 +48,23 @@ export async function main(ns: NS) {
   }
 
   // run for home specifically
-  //   ns.exec('eht-max.js', 'home');
+  ns.exec('eht-max.js', 'home');
 
-  //   await ns.sleep(2000); // hack for race condition killing scripts
+  await ns.sleep(2000); // hack for race condition killing scripts
 
   // run for all other servers
   console.log('Fin! Hosts unlocked!');
-  ns.exec('purchase-server.js', 'home', 1, '4096');
-  ns.exec('watch-for-better-target.js', 'home');
+  //   ns.exec('purchase-server.js', 'home', 1, '4096');
+  //   ns.exec('watch-for-better-target.js', 'home');
 
-  if (isNewGame(ns)) {
-    await initServerOrchestrator(ns, 'home', 'n00dles');
-  } else {
-    await initServerOrchestrator(ns);
-  }
-  //   await crawl(
-  //  ns,
-  //  nodes.filter((n) => n !== 'home'),
-  //   );
+  //   if (isNewGame(ns)) {
+  //     await serverOrchestrator(ns, 'n00dles', 'home');
+  //   } else {
+  //     await initServerOrchestrator(ns);
+  //   }
+  console.log({ nodes });
+  //  await crawl(
+  // ns,
+  // nodes.filter((n) => n !== 'home'),
+  //  );
 }
