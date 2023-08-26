@@ -10,27 +10,66 @@ export async function serverUpgradeManager(ns: NS) {
   const purchasedServers = getPurchasedServers();
   const pserv = purchasedServers[purchasedServers.length - 1];
 
-  const getUpgradeCatalog = () =>
-    Array.from({ length: 21 }).map((_, i) => {
+  const getSortedServers = () => {
+    const res = getPurchasedServers()
+      .sort((a, b) => {
+        const aRam = ns.getServerMaxRam(a);
+        const bRam = ns.getServerMaxRam(b);
+        const isDescending = bRam - aRam;
+
+        const idA = parseInt(a.split('-')[2]);
+        const idB = parseInt(b.split('-')[2]);
+        const ascendingOnLastNum = idB - idA;
+
+        if (isDescending === 0) {
+          return ascendingOnLastNum;
+        }
+
+        return isDescending;
+      })
+      .reverse();
+    //  ns.tprint(`INFO Sorted servers: `, res);
+    return res;
+  };
+
+  const getUpgradeCatalog = () => {
+    const res = Array.from({ length: 21 }).map((_, i) => {
       const ram = 2 ** i;
       const serverCost = ns.getPurchasedServerCost(ram);
       const currentMoney = getCurrentMoney();
       const canAffordServer = currentMoney >= serverCost;
       const numCanAfford = Math.floor(currentMoney / serverCost);
-      const upgradeCost = !pserv ? serverCost : ns.getPurchasedServerUpgradeCost(pserv, ram);
-      return { i, serverCost, canAffordServer, numCanAfford, upgradeCost, upVsNewDiff: serverCost - upgradeCost, ram };
+
+      const allServers = getSortedServers();
+      const minServer = allServers[0];
+      const upgradeCost = ns.getPurchasedServerUpgradeCost(minServer, ram);
+      const cost = !pserv ? serverCost : upgradeCost;
+      const numCanUpgrade = Math.floor(currentMoney / upgradeCost);
+      return {
+        i,
+        serverCost: ns.formatNumber(cost),
+        canAffordServer,
+        numCanAfford,
+        numCanUpgrade,
+        upVsNewDiff: serverCost - upgradeCost,
+        ram,
+      };
     });
+    console.log({ upgradeCatalog: res });
+    return res;
+  };
   const upgradeCatalog = getUpgradeCatalog();
 
   console.log({ upgradeCatalog });
 
   //   const maxUpgradableRam = upgradeCatalog.findLast((server) => server.numCanAfford > serverLimit)?.ram;
-  const getMaxUpgradableRam = () => getUpgradeCatalog().findLast((server) => server.numCanAfford > 0)?.ram || 0;
+  const getMaxUpgradableRam = () =>
+    getUpgradeCatalog().findLast((server) => server.numCanUpgrade > 0 || server.numCanAfford > 0)?.ram || undefined;
   const maxUpgradableRam = getMaxUpgradableRam();
   console.log({ upgradeCatalog, maxUpgradableRam });
 
   if (!maxUpgradableRam) {
-    console.log('??');
+    console.log('??', { maxUpgradableRam });
     return;
   }
 
@@ -39,18 +78,6 @@ export async function serverUpgradeManager(ns: NS) {
     return;
   }
 
-  const getSortedServers = () => {
-    const res = getPurchasedServers()
-      .sort((a, b) => {
-        const aRam = ns.getServerMaxRam(a);
-        const bRam = ns.getServerMaxRam(b);
-        const isDescending = bRam - aRam;
-        return isDescending;
-      })
-      .reverse();
-    ns.tprint(`INFO Sorted servers: `, res);
-    return res;
-  };
   const getLowestPserv = () => getSortedServers()[0];
 
   //   const temp = () => getLowestPserv();
@@ -59,6 +86,23 @@ export async function serverUpgradeManager(ns: NS) {
   //   const success = ns.renamePurchasedServer('pserv-256-[object Object]', 'pserv-256-3');
   //   console.log({ success });
   //   return;
+
+  const getNextAvailablePservIndexForRam = (nextRamAmount: number) => {
+    const sortedFiltered = getSortedServers().filter((name) => ns.getServerMaxRam(name) === nextRamAmount);
+    console.log({ sortedFiltered });
+    const lastFoundIndex = sortedFiltered.reduce((res, name) => {
+      const splitName = name.split('-');
+      const index = parseInt(splitName[splitName.length - 1]);
+      if (index === res + 1) {
+        return res + 1;
+      }
+      return res;
+    }, 0);
+
+    const missingIndex = lastFoundIndex + 1;
+    ns.tprint('INFO missing index: ', missingIndex);
+    return missingIndex;
+  };
 
   /**
    * TODO Keep this?
@@ -73,17 +117,16 @@ export async function serverUpgradeManager(ns: NS) {
   //       if (serverRamNumber === actualRam) {
   //         return;
   //       }
-  //       const numServersAtNewLevel = getPurchasedServers()
-  //         .map((name) => ({ ram: ns.getServerMaxRam(name) }))
-  //         .filter(({ ram }) => ram === actualRam).length;
+
+  //       const nextNumberAvailable = getNextAvailablePservIndexForRam(actualRam);
 
   //       // const newName = `pserv-${actualRam}-1`;
-  //       const newName = `pserv-${actualRam}-${numServersAtNewLevel}`;
+  //       const newName = `pserv-${actualRam}-${nextNumberAvailable}`;
   //       console.log({ server, newName });
-  //       // ns.renamePurchasedServer(server, newName);
+  //       ns.renamePurchasedServer(server, newName);
   //     });
   //   };
-  //   return renameServers();
+  //   return renameServercosts();
   /**
    * TODO Keep this?
    */
@@ -101,7 +144,7 @@ export async function serverUpgradeManager(ns: NS) {
     //  if (!bestRamCanAfford) {
     console.log({ bestRamCanAfford, weakestRam });
     if (!bestRamCanAfford || weakestRam >= bestRamCanAfford) {
-      ns.tprint(`WARN Shouldn't upgrade from ${weakestRam} to ${bestRamCanAfford}`);
+      ns.tprint(`WARN Can't upgrade from ${weakestRam} to ${bestRamCanAfford}`);
       return false;
     }
 
@@ -111,7 +154,7 @@ export async function serverUpgradeManager(ns: NS) {
     // ns.getServerMoneyAvailable('home') >= ns.getPurchasedServerUpgradeCost(weakest, bestRamCanAfford);
     const type = canPurchase ? 'SUCCESS' : 'ERROR';
     ns.tprint(
-      `${type} highest upgrade possible: current ${ns.formatNumber(currentMoney)} | cost: ${ns.formatNumber(
+      `${type} highest upgrade possible: current ${ns.formatNumber(currentMoney)} | upgrade cost: ${ns.formatNumber(
         costToUpgrade,
       )} | bestCanAfford: ${bestRamCanAfford}`,
     );
@@ -154,14 +197,16 @@ export async function serverUpgradeManager(ns: NS) {
       }
 
       // ns.upgradePurchasedServer(lowestPowerPServ, maxUpgradableRam);
-      const numServersAtNewLevel = getPurchasedServers()
-        .map((name) => ({ ram: ns.getServerMaxRam(name) }))
-        .filter(({ ram }) => ram === maxUpgradableRam).length;
+      // const numServersAtNewLevel = getPurchasedServers()
+      //   .map((name) => ({ ram: ns.getServerMaxRam(name) }))
+      //   .filter(({ ram }) => ram === maxUpgradableRam).length;
+      const nextIndex = getNextAvailablePservIndexForRam(maxUpgradableRam);
       // const numServersAtNewLevel = mapHostToServer(ns, getPurchasedServers()).filter(
       //   (s) => s.maxMem === maxUpgradableRam,
       // )?.length;
-      const newName = `pserv-${maxUpgradableRam}-${numServersAtNewLevel}`;
-      // ns.tprint('INFO: New Server: ', newName);
+      const newName = `pserv-${maxUpgradableRam}-${nextIndex}`;
+      // const newName = `pserv-${maxUpgradableRam}-${numServersAtNewLevel}`;
+      ns.tprint(`INFO: renaming ${lowestPowerPServ} to ${newName}`);
       const successRename = ns.renamePurchasedServer(lowestPowerPServ, newName);
       ns.tprint(
         `${successRename ? 'SUCCESS' : 'WARN'}: New Server: ${
