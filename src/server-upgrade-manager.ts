@@ -64,7 +64,7 @@ export async function serverUpgradeManager(ns: NS) {
 
   //   const maxUpgradableRam = upgradeCatalog.findLast((server) => server.numCanAfford > serverLimit)?.ram;
   const getMaxUpgradableRam = () =>
-    getUpgradeCatalog().findLast((server) => server.numCanUpgrade > 0 || server.numCanAfford > 0)?.ram || undefined;
+    getUpgradeCatalog().findLast((server) => server.numCanUpgrade > 0 || server.numCanAfford > 0)?.ram || 0;
   const maxUpgradableRam = getMaxUpgradableRam();
   console.log({ upgradeCatalog, maxUpgradableRam });
 
