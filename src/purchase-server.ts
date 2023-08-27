@@ -3,7 +3,7 @@ import { getCurrentTarget } from './get-current-target';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
-  const ram = ns.args[0] as number;
+  const ram = (ns.args[0] || 8) as number;
 
   let i = 0;
   // bump i for each server already purchased at the given RAM amount
