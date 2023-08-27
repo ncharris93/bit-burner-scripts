@@ -6,6 +6,7 @@ import { getCurrentTarget } from './get-current-target';
 import { IdealServerData, getServerData } from './server-manager';
 import { HWG } from './types';
 import { getPriorityTargetList } from './get-priority-target-list';
+import { timeStr } from './logger';
 
 /**
  * TODO: ideally this could play nice with the server-upgrade-manager?
@@ -161,7 +162,9 @@ export async function swarmManager(ns: NS) {
 
     const data = t[currentMethod()];
 
-    ns.tprint(`[${currentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
+    ns.tprint(
+      `[${timeStr()}][${currentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${target().name}`,
+    );
     const timer = Date.now();
 
     ns.exec(
@@ -180,8 +183,9 @@ export async function swarmManager(ns: NS) {
         (Date.now() - cycleStartTime) -
         (methodIndex % 3) * TIME_BETWEEN_ITERATIONS;
 
-      const timeStr = waitTime / 1000 > 180 ? `${waitTime / 1000 / 60}min` : `${waitTime / 1000}s`;
-      ns.tprint(`INFO: MAX num utilized threads reached, waiting for ${timeStr} based off ${startCycleMethod} time.`);
+      ns.tprint(
+        `INFO: MAX num utilized threads reached, waiting for ${msToTime(waitTime)} based off ${startCycleMethod} time.`,
+      );
       await ns.sleep(waitTime);
       numThreadsLeftBeforeRest = numThreadsForFullCycle;
     }
@@ -232,4 +236,17 @@ export async function swarmManager(ns: NS) {
   }
 
   console.log('ERROR Whelp...this is awkward...');
+}
+
+function msToTime(duration: number) {
+  const milliseconds = Math.floor((duration % 1000) / 100);
+  let seconds = Math.floor((duration / 1000) % 60);
+  let minutes = Math.floor((duration / (1000 * 60)) % 60);
+  let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+  hours = hours < 10 ? '0' + hours : hours;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+  seconds = seconds < 10 ? '0' + seconds : seconds;
+
+  return hours + ':' + minutes + ':' + seconds + '.' + milliseconds;
 }

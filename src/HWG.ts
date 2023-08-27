@@ -1,4 +1,5 @@
 import { NS } from '@ns';
+import { timeStr } from './logger';
 
 const ArgsOpts = ['hack', 'weaken', 'grow'] as const;
 type Args = (typeof ArgsOpts)[number];
@@ -40,21 +41,22 @@ export async function main(ns: NS) {
 
   const endTime = Date.now();
   const extra = type === 'hack' ? endTime - timer : '';
-  false &&
-    //   type === 'hack' &&
-    console.log(
-      `[${host}.${target}.${iterationID}] threads:${threadCount} ${endTime} ms:${
-        endTime - startTime
-      } [${type}]: fin. res: ${res}, ${extra}`,
-    );
+  //   false &&
+  //     //   type === 'hack' &&
+  //     console.log(
+  //       `[${host}.${target}.${iterationID}] threads:${threadCount} ${endTime} ms:${
+  //         endTime - startTime
+  //       } [${type}]: fin. res: ${res}, ${extra}`,
+  //     );
+  const meta = `[${timeStr()}][${host} => ${target}][${iterationID}]`;
   if (type === 'hack') {
     if (res === 0) {
-      return ns.tprint(`WARN: [${host} -> ${target}][${iterationID}] Hack Waisted Cycles :( $${res}`);
+      return ns.tprint(`WARN: ${meta} Hack Waisted Cycles :( $${res}`);
     }
     if (!res) {
-      return ns.tprint(`ERROR: [${host} -> ${target}][${iterationID}] Hack Failure`);
+      return ns.tprint(`ERROR: ${meta} Hack Failure`);
     }
-    ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${res}`);
+    ns.tprint(`SUCCESS: ${meta} Hack Success: ${res}`);
     //  ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);
     console.log('typeof res? ', typeof res);
 
