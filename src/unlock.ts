@@ -2,16 +2,13 @@
 // import getNodeArray from './get-node-array.js'
 
 import { NS } from '@ns';
-import { crawl } from './crawler';
 import { getNodeArray } from './get-node-array';
-import { initServerOrchestrator } from './init-server-orchestrator';
-import { isNewGame } from './utils';
-import { serverOrchestrator } from './server-orchestrator';
 
 /** @param {NS} ns */
 export async function main(ns: NS) {
   const nodes = getNodeArray(ns);
   console.log({ len: nodes.length, nodes });
+  let didUnlock = false;
 
   for (const hn of nodes) {
     const target = ns.getServer(hn);
@@ -36,24 +33,24 @@ export async function main(ns: NS) {
       }
     }
 
-    ns.killall(hn);
-
     const numPortsNeeded = ns.getServerNumPortsRequired(hn);
     const portsUnlocked = target.openPortCount || 0;
     const canNuke = numPortsNeeded <= portsUnlocked && !target.hostname.includes('pserv-');
     if (canNuke && !ns.hasRootAccess(hn)) {
-      console.log(`Nuking: ${hn}`);
+      ns.tprint(`SUCCESS: Nuking: ${hn}`);
+      ns.killall(hn);
       ns.nuke(hn);
+      didUnlock = true;
     }
   }
 
   // run for home specifically
-  ns.exec('eht-max.js', 'home');
+  //   ns.exec('eht-max.js', 'home');
 
-  await ns.sleep(2000); // hack for race condition killing scripts
+  //   await ns.sleep(2000); // hack for race condition killing scripts
 
   // run for all other servers
-  console.log('Fin! Hosts unlocked!');
+  ns.tprint(`${didUnlock ? 'SUCCESS' : 'INFO'} Fin! ${didUnlock ? 'Hosts unlocked!' : 'No new unlocks'}`);
   //   ns.exec('purchase-server.js', 'home', 1, '4096');
   //   ns.exec('watch-for-better-target.js', 'home');
 
@@ -62,7 +59,7 @@ export async function main(ns: NS) {
   //   } else {
   //     await initServerOrchestrator(ns);
   //   }
-  console.log({ nodes });
+  //   console.log({ nodes });
   //  await crawl(
   // ns,
   // nodes.filter((n) => n !== 'home'),
