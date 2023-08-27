@@ -22,7 +22,8 @@ export async function swarmManager(ns: NS) {
   const scriptRam = ns.getScriptRam('HWG.js');
   const allNodes = getNodeArray(ns);
   const serverFilter = (s: NCH_Server) => s.maxMem > scriptRam && s.canHack;
-  const myServers = mapHostToServer(ns, allNodes).filter(serverFilter);
+  const getMyServers = () => mapHostToServer(ns, getNodeArray(ns)).filter(serverFilter);
+  const myServers = getMyServers();
 
   const homeRamToSpare = 10;
   const totalMemoryToUse = myServers.reduce((res, cur) => (res += cur.maxMem), 0) - homeRamToSpare;
@@ -36,7 +37,8 @@ export async function swarmManager(ns: NS) {
   console.log({ scriptRam });
   const targetIndex = 0;
   const target = () => targets[targetIndex % targets.length];
-  //   const
+  //   const target = () => mapHostToServer(ns, ['foodnstuff'])[0];
+  //  const
   //   const target = getCurrentTarget(ns);
   if (!target()) {
     throw new Error('No target?');
@@ -90,7 +92,7 @@ export async function swarmManager(ns: NS) {
   let networkRamRemaining = totalMemoryToUse;
   const currentMethod = () => methodCycle[methodIndex % methodCycle.length] as HWG;
   //   const host = myServers[hostIndex];
-  const host = () => myServers[hostIndex % myServers.length];
+  const host = () => getMyServers()[hostIndex % getMyServers().length];
   const getServerRamRemaining = () => {
     if (host().name === 'home') {
       return ns.getServerMaxRam('home') - homeRamToSpare - scriptRam;
@@ -112,7 +114,7 @@ export async function swarmManager(ns: NS) {
   };
 
   let threadCounter = getThreadCounter();
-  console.log('Starting Thread Counter:', { threadCounter: { ...threadCounter } });
+  ns.tprint('INFO Starting Thread Counter:', { threadCounter: { ...threadCounter } });
 
   myServers.forEach(({ name }) => ns.scp('HWG.js', name));
 
@@ -159,7 +161,7 @@ export async function swarmManager(ns: NS) {
 
     const data = t[currentMethod()];
 
-    ns.tprint(`[${currentMethod()}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
+    ns.tprint(`[${currentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${target().name}`);
     const timer = Date.now();
 
     ns.exec(
@@ -171,10 +173,15 @@ export async function swarmManager(ns: NS) {
 
     numThreadsLeftBeforeRest -= numThreadsForServer;
     if (numThreadsLeftBeforeRest <= 0) {
-      const waitTime = getTargetData()[startCycleMethod].time - (Date.now() - cycleStartTime);
-      ns.tprint(
-        `INFO: MAX num utilized threads reached, waiting for ${waitTime / 1000}s based off ${startCycleMethod} time`,
-      );
+      const threadData = getTargetData()[startCycleMethod];
+      const waitTime =
+        threadData.time +
+        threadData.timeBuffer -
+        (Date.now() - cycleStartTime) -
+        (methodIndex % 3) * TIME_BETWEEN_ITERATIONS;
+
+      const timeStr = waitTime / 1000 > 180 ? `${waitTime / 1000 / 60}min` : `${waitTime / 1000}s`;
+      ns.tprint(`INFO: MAX num utilized threads reached, waiting for ${timeStr} based off ${startCycleMethod} time.`);
       await ns.sleep(waitTime);
       numThreadsLeftBeforeRest = numThreadsForFullCycle;
     }
