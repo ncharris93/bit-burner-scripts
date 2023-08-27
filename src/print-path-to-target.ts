@@ -62,6 +62,7 @@ export function printPathToTarget(ns: NS) {
     .reverse();
 
   console.log(result);
+  ns.tprint('INFO: ', result);
   return result;
 }
 
