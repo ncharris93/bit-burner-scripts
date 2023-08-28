@@ -1,12 +1,10 @@
-import { Sleeve } from './../NetscriptDefinitions.d';
 import { NS } from '@ns';
 import { getNodeArray } from './get-node-array';
 import { NCH_Server, mapHostToServer } from './map-host-to-server';
-import { getCurrentTarget } from './get-current-target';
-import { IdealServerData, getServerData } from './server-manager';
+import { getServerData } from './server-manager';
 import { HWG } from './types';
 import { getPriorityTargetList } from './get-priority-target-list';
-import { timeStr } from './logger';
+import { getTimeString } from './logger';
 
 /**
  * TODO: ideally this could play nice with the server-upgrade-manager?
@@ -163,7 +161,9 @@ export async function swarmManager(ns: NS) {
     const data = t[currentMethod()];
 
     ns.tprint(
-      `[${timeStr()}][${currentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${target().name}`,
+      `[${getTimeString()}][${currentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${
+        target().name
+      }`,
     );
     const timer = Date.now();
 

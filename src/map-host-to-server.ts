@@ -4,6 +4,7 @@ import { getNodeArray } from './get-node-array';
 export type NCH_Server = ReturnType<typeof mapHostToServer>[0];
 export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
   const hackingLevel = ns.getHackingLevel();
+  ns.disableLog('ALL');
   return hostnames.map((host) => {
     //  const server = ns.getServer();
 
@@ -29,6 +30,7 @@ export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
       canHack: ns.getServerRequiredHackingLevel(host) <= hackingLevel,
     };
 
+    ns.enableLog('ALL');
     return res;
   });
 };
