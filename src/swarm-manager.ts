@@ -3,7 +3,7 @@ import { getNodeArray } from './get-node-array';
 import { NCH_Server, mapHostToServer } from './map-host-to-server';
 import { getServerData } from './server-manager';
 import { HWG } from './types';
-import { getPriorityTargetList } from './get-priority-target-list';
+// import { getPriorityTargetList } from './get-priority-target-list';
 import { getTimeString } from './logger';
 import { getCurrentTarget } from './get-current-target';
 
@@ -32,10 +32,11 @@ export async function swarmManager(ns: NS) {
       .filter(serverFilter)
       .reduce((res, cur) => (res += cur.maxMem), 0) - homeRamToSpare;
 
-  const targets = await getPriorityTargetList(ns);
+  //   const targets = await getPriorityTargetList(ns);
   console.log({ scriptRam });
-  const targetIndex = 0;
-  const target = () => targets[targetIndex % targets.length];
+  //   const targetIndex = 0;
+  //   const target = () => targets[targetIndex % targets.length];
+  const target = () => getCurrentTarget(ns) as NCH_Server;
   if (!target()) {
     throw new Error('No target?');
   }
@@ -64,7 +65,8 @@ export async function swarmManager(ns: NS) {
     if (host().name === 'home') {
       return ns.getServerMaxRam('home') - ns.getServerUsedRam('home') - homeRamToSpare - scriptRam;
     }
-    return host().maxMem - ns.getServerUsedRam(host().name) - scriptRam;
+    return host().maxMem - ns.getServerUsedRam(host().name);
+    //  return host().maxMem - ns.getServerUsedRam(host().name) - scriptRam;
   };
 
   let serverRamRemaining = getServerRamRemaining();
@@ -97,6 +99,7 @@ export async function swarmManager(ns: NS) {
     return res;
   };
 
+  //   const waitTimeOffset = t.hack.timeBuffer;
   while (getNetworkRamRemaining() > 0) {
     const maxServerThreads = Math.floor(serverRamRemaining / scriptRam);
     const numThreadsForServer = Math.min(
