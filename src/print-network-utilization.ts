@@ -31,5 +31,12 @@ export async function printNetworkUtilization(ns: NS) {
   const pservUtilization = usedPservRam / pservRam;
 
   console.log({ networkRAM, usedNetworkRam, networkUtilization, pservRam, usedPservRam, pservUtilization });
-  ns.print({ networkRAM, usedNetworkRam, networkUtilization, pservRam, usedPservRam, pservUtilization });
+  ns.tprint('network stats: ', {
+    networkRAM,
+    usedNetworkRam,
+    networkUtilization,
+    pservRam,
+    usedPservRam,
+    pservUtilization,
+  });
 }

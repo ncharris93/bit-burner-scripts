@@ -62,7 +62,7 @@ export async function main(ns: NS) {
     }
     ns.tprint(`SUCCESS: ${meta} Hack Success: $${ns.formatNumber(res)}`);
     //  ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);
-    console.log('typeof res? ', typeof res);
+    //  console.log('typeof res? ', typeof res);
 
     //   if(!res) {
     //    ns.tprint(`ERROR: [${host} -> ${target}] Hack Failure $${res}`)

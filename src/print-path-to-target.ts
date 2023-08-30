@@ -27,7 +27,7 @@ export function printPathToTarget(ns: NS) {
     .filter((name) => !name.includes('pserv-'))
     .map((name) => ({ hostname: name, depth: 1 }));
   const processedNodes: string[] = ['home'];
-  console.log(queue);
+  //   console.log(queue);
   while (queue.length) {
     const host = queue.shift();
     if (!host) {
@@ -61,7 +61,7 @@ export function printPathToTarget(ns: NS) {
     }, [])
     .reverse();
 
-  console.log(result);
+  //   console.log(result);
   ns.tprint('INFO: ', result);
   return result;
 }
