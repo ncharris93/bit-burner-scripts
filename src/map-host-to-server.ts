@@ -27,7 +27,7 @@ export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
       timeToWeaken: ns.getWeakenTime(host),
       // ...server,
 
-      canHack: ns.getServerRequiredHackingLevel(host) <= hackingLevel,
+      canHack: ns.getServerRequiredHackingLevel(host) <= hackingLevel && ns.hasRootAccess(host),
     };
 
     ns.enableLog('ALL');
