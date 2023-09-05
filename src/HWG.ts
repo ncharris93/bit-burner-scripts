@@ -52,7 +52,7 @@ export async function main(ns: NS) {
   //         endTime - startTime
   //       } [${type}]: fin. res: ${res}, ${extra}`,
   //     );
-  const meta = `[${getTimeString()}][${host} => ${target}][${iterationID}]`;
+  const meta = `[${getTimeString()}][${pad(host)} => ${pad(target)}][${iterationID}]`;
   if (type === 'hack') {
     if (res === 0) {
       return ns.tprint(`WARN: ${meta} Hack Waisted Cycles :( $${res}`);
@@ -73,5 +73,9 @@ export async function main(ns: NS) {
     //    }, ${res}, TIME since last: ${endTime - timer}`,
     //  );
     timer = Date.now();
+  } else {
+    return ns.tprint(`SUCCESS: ${meta} HWG: ${type} $${res}`);
   }
 }
+
+const pad = (str: string, size = 15) => str.padStart(size, ' ');
