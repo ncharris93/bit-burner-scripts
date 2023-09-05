@@ -1,6 +1,12 @@
 import { NS } from '@ns';
+import { readFormulasData } from './formulas/formulas-read';
 
 export const isNewGame = (ns: NS) => ns.getHackingLevel() < 100;
+
+export async function main(ns: NS) {
+  const host = ns.args[0] as string;
+  return getIdealGrowThreadCountForOneIteration(ns, host);
+}
 
 /**
  *
@@ -34,9 +40,17 @@ const getMaxThreadCountForIdeal = (ns: NS, suggestion: number) => {
 export type IdealThreadData = { threadCount: number; time: number; timeBuffer: number };
 export const getIdealWeakenThreadCountForOneIteration = (ns: NS, host: string): IdealThreadData => {
   // export const getIdealWeakenThreadCountForOneIteration = async (ns: NS, host: string) => {
+  const weakenTime = Math.ceil(ns.getWeakenTime(host));
   const minSecurity = ns.getServerMinSecurityLevel(host);
   const currentSecurity = ns.getServerSecurityLevel(host);
   const securityDifference = currentSecurity - minSecurity;
+  if (!securityDifference) {
+    return {
+      threadCount: 1,
+      time: weakenTime,
+      timeBuffer: 0,
+    };
+  }
 
   let threadCount = 0;
   const threadResolution = 10;
@@ -55,7 +69,6 @@ export const getIdealWeakenThreadCountForOneIteration = (ns: NS, host: string): 
   }
 
   // const server = ns.getServer(host)
-  const weakenTime = Math.ceil(ns.getWeakenTime(host));
   // const currentWeakness = server
   return {
     threadCount: getMaxThreadCountForIdeal(ns, threadCount),
@@ -66,15 +79,35 @@ export const getIdealWeakenThreadCountForOneIteration = (ns: NS, host: string): 
 
 export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): IdealThreadData => {
   const maxMoney = ns.getServerMaxMoney(host);
-  let currentMoney = ns.getServerMoneyAvailable(host) || 1;
+  const growTime = Math.ceil(ns.getGrowTime(host));
+  const currentMoney = ns.getServerMoneyAvailable(host) || 1;
+  console.log({
+    maxMoney: ns.formatNumber(maxMoney),
+    currentMoney: ns.formatNumber(currentMoney),
+    delta: ns.formatNumber(maxMoney - currentMoney),
+  });
   // hacky way to still trigger a grow if the server is full
   if (currentMoney === maxMoney) {
-    currentMoney = 0;
+    return {
+      threadCount: 1,
+      time: growTime,
+      timeBuffer: 0,
+    };
   }
 
   const threadResolution = 50;
   let threadCountGuess = 10;
   //   const moneyDifference = maxMoney - currentMoney;
+
+  if (true) {
+    const formulasData = readFormulasData(ns)[host];
+    console.log({ formulasData });
+    return {
+      threadCount: formulasData.grow,
+      time: growTime,
+      timeBuffer: 0,
+    };
+  }
 
   if (false) {
     //   if (ns.fileExists('formulas.exe', 'home')) {
@@ -124,6 +157,7 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
 
       const moneyForThreadCountsInCalc = threadCountGuess;
       const serverMoneyAfterGrowthFactor = moneyForThreadCountsInCalc * redditGrowth;
+      // console.log({ redditGrowth, moneyForThreadCountsInCalc, serverMoneyAfterGrowthFactor });
       // const serverMoneyAfterGrowthFactor = moneyForThreadCountsInCalc * wantedGrowthFactor;
       // const serverMoneyAfterGrowthFactor = currentMoney * wantedGrowthFactor;
       if (prevGuess === serverMoneyAfterGrowthFactor) {
@@ -187,8 +221,6 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
 
     //  threadCountGuess = threadCountGuess;
   }
-
-  const growTime = Math.ceil(ns.getGrowTime(host));
 
   return {
     threadCount: getMaxThreadCountForIdeal(ns, threadCountGuess),
