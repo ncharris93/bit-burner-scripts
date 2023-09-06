@@ -21,16 +21,6 @@ export async function main(ns: NS) {
 
     const mockPlayer = ns.formulas.mockPlayer();
     data[host].grow = ns.formulas.hacking.growThreads(mockServer, mockPlayer, moneyMax);
-
-    /**
-     * Changing the hacking still level didn't effect outcome
-     */
-    //  Array.from({ length: 10 }).forEach((_, idx) => {
-    //    const hackSkill = (idx + 1) * HACK_RESOLUTION;
-    //    mockPlayer.skills.hacking = hackSkill;
-    //    const growThreads = ns.formulas.hacking.growThreads(mockServer, mockPlayer, moneyMax);
-    //    data[host].grow[`${hackSkill}`] = growThreads;
-    //  });
   });
 
   ns.write(FORMULA_FILE_NAME, JSON.stringify(data), 'w');

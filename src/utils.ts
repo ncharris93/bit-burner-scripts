@@ -87,13 +87,13 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
     delta: ns.formatNumber(maxMoney - currentMoney),
   });
   // hacky way to still trigger a grow if the server is full
-  if (currentMoney === maxMoney) {
-    return {
-      threadCount: 1,
-      time: growTime,
-      timeBuffer: 0,
-    };
-  }
+  //   if (currentMoney === maxMoney) {
+  //     return {
+  //       threadCount: 1,
+  //       time: growTime,
+  //       timeBuffer: 0,
+  //     };
+  //   }
 
   const threadResolution = 50;
   let threadCountGuess = 10;
