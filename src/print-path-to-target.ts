@@ -15,7 +15,7 @@ type Deep = {
 
 const getDeep = (names: string[], depth: number) => names.map((name) => ({ hostname: name, depth }));
 
-export function printPathToTarget(ns: NS) {
+export async function printPathToTarget(ns: NS) {
   const targetName = ns.args[0];
   if (!targetName) {
     throw new Error('Forgot target name!');
@@ -62,12 +62,16 @@ export function printPathToTarget(ns: NS) {
     .reverse();
 
   //   console.log(result);
-  ns.tprint('INFO: ', result);
+  //   ns.tprint('INFO: ', result);
+  const pasteCmd = result.map((name) => `con ${name};`).join(' ');
+  await navigator.clipboard.writeText(pasteCmd);
+  //   ns.tprint('INFO: ', pasteCmd);
+
   return result;
 }
 
 export async function main(ns: NS) {
-  printPathToTarget(ns);
+  await printPathToTarget(ns);
 }
 // import { NS } from '@ns';
 
