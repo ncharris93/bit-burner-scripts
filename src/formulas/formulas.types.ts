@@ -1,8 +1,9 @@
 type HWGData = number;
 export type Data = {
   [host: string]: {
-    //  hack: HWGData;
-    //  weaken: HWGData;
-    grow: HWGData;
+    hackPercent: HWGData;
+    //  weaken1: HWGData;
+    //  weaken2: HWGData;
+    growThreads: HWGData;
   };
 };
