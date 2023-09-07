@@ -5,7 +5,13 @@ type Args = (typeof ArgsOpts)[number];
 
 const getTimeString = () => {
   const d = new Date();
-  return `${d.getHours() % 12}:${d.getMinutes()}:${d.getSeconds()}`;
+  const hours = d.getHours() % 12;
+  const h = hours < 10 ? '0' + hours : hours;
+  const min = d.getMinutes();
+  const m = min < 10 ? '0' + min : min;
+  const sec = d.getSeconds();
+  const s = sec < 10 ? '0' + sec : sec;
+  return `${h}:${m}:${s}`;
 };
 
 /**
