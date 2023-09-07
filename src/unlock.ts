@@ -10,36 +10,36 @@ export async function main(ns: NS) {
   console.log({ len: nodes.length, nodes });
   let didUnlock = false;
 
-  for (const hn of nodes) {
-    const target = ns.getServer(hn);
+  for (const host of nodes) {
+    const target = ns.getServer(host);
 
-    if (!ns.hasRootAccess(hn)) {
-      console.log(`No root access to: ${hn}`);
+    if (!ns.hasRootAccess(host)) {
+      console.log(`No root access to: ${host}`);
 
       if (ns.fileExists('BruteSSH.exe', 'home')) {
-        ns.brutessh(hn);
+        ns.brutessh(host);
       }
       if (ns.fileExists('FTPCrack.exe', 'home')) {
-        ns.ftpcrack(hn);
+        ns.ftpcrack(host);
       }
       if (ns.fileExists('relaySMTP.exe', 'home')) {
-        ns.relaysmtp(hn);
+        ns.relaysmtp(host);
       }
       if (ns.fileExists('HTTPWorm.exe', 'home')) {
-        ns.httpworm(hn);
+        ns.httpworm(host);
       }
       if (ns.fileExists('SQLInject.exe', 'home')) {
-        ns.sqlinject(hn);
+        ns.sqlinject(host);
       }
     }
 
-    const numPortsNeeded = ns.getServerNumPortsRequired(hn);
-    const portsUnlocked = target.openPortCount || 0;
+    const numPortsNeeded = ns.getServerNumPortsRequired(host);
+    const portsUnlocked = ns.getServer(host).openPortCount || 0;
     const canNuke = numPortsNeeded <= portsUnlocked && !target.hostname.includes('pserv-');
-    if (canNuke && !ns.hasRootAccess(hn)) {
-      ns.tprint(`SUCCESS: Nuking: ${hn}`);
-      ns.killall(hn);
-      ns.nuke(hn);
+    if (canNuke && !ns.hasRootAccess(host)) {
+      ns.tprint(`SUCCESS: Nuking: ${host}`);
+      ns.killall(host);
+      ns.nuke(host);
       didUnlock = true;
     }
   }
