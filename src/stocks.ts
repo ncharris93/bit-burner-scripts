@@ -62,7 +62,7 @@ const basicBitchAnalysis = (ns: NS, hist: History['priceHistory']) => {
   return magnitudePercent;
 };
 
-const buyStuff = (ns:NS) =>{
-   const thingToBuy = 
+// const buyStuff = (ns:NS) =>{
+//    const thingToBuy =
 
-}
+// }
