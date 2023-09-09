@@ -3,10 +3,15 @@ import { getNodeArray } from './get-node-array';
 import { NCH_Server, mapHostToServer } from './map-host-to-server';
 import { getServerData } from './server-manager';
 import { HWG } from './types';
-// import { getPriorityTargetList } from './get-priority-target-list';
-import { getTimeString } from './logger';
+import { getTimeString, pad } from './logger';
 import { getCurrentTarget } from './get-current-target';
 import { isNewGame } from './utils';
+import { colors } from './utils/colors';
+
+const getMethodText = (method: HWG) => {
+  const color = method === 'grow' ? colors.cyan : method === 'hack' ? colors.green : colors.white;
+  return `${color}${method.padStart(7, ' ')}${colors.reset}`;
+};
 
 /**
  * TODO: ideally this could play nice with the server-upgrade-manager?
@@ -17,11 +22,12 @@ export async function main(ns: NS) {
 }
 
 const TIME_BETWEEN_ITERATIONS = 10_000;
-const HOME_RAM_TO_SPARE = 50;
+const HOME_RAM_TO_SPARE = 10;
 
 export async function swarmManager(ns: NS) {
-  //   const scriptRam = ns.getScriptRam('weaken.js');
-  const scriptRam = ns.getScriptRam('HWG.js');
+  ns.disableLog('ALL');
+  const scriptRam = ns.getScriptRam('weaken.js');
+  //   const scriptRam = ns.getScriptRam('HWG.js');
   const allNodes = getNodeArray(ns);
   const serverFilter = (s: NCH_Server) => s.maxMem > scriptRam && s.canHack;
   //   const getMyServers = () => mapHostToServer(ns, getNodeArray(ns)).filter(serverFilter);
@@ -105,7 +111,7 @@ export async function swarmManager(ns: NS) {
   };
 
   let threadCounter = getThreadCounter();
-  ns.tprint('INFO Starting Thread Counter:', { threadCounter: { ...threadCounter } });
+  ns.print('INFO Starting Thread Counter:', { threadCounter: { ...threadCounter } });
 
   myServers.forEach(({ name }) => ns.scp('HWG.js', name));
 
@@ -118,7 +124,7 @@ export async function swarmManager(ns: NS) {
 
   const getThreadsLeftForServer = () => {
     const res = getServerRamRemaining() / scriptRam;
-    //  ns.tprint(`SUCCESS: threads left for server: ${res} - host: ${host().name}`);
+    //  ns.print(`SUCCESS: threads left for server: ${res} - host: ${host().name}`);
     return res;
   };
 
@@ -126,7 +132,7 @@ export async function swarmManager(ns: NS) {
   const bufferForIncompleteCycle = 0;
   const numServers = ns.scan('home').length;
   let isStalling = false;
-  ns.tprint('INFO: use reduced time buffer: ', shouldUseReducedTimeBuffer());
+  ns.print('INFO: use reduced time buffer: ', shouldUseReducedTimeBuffer());
 
   const getNextAvailableHostIndex = (): number => {
     // getServerRamRemaining
@@ -163,7 +169,7 @@ export async function swarmManager(ns: NS) {
      * TODO this needs tweaking, should check if there is enough ram on the given host to run the job, and if not, wait(?)
      */
     if (numThreadsForServer <= 0) {
-      // ns.tprint(
+      // ns.print(
       //   JSON.stringify({
       //     maxServerThreads: maxServerThreads,
       //     //  threadCount: threadCount(),
@@ -178,7 +184,7 @@ export async function swarmManager(ns: NS) {
         } else {
           ++methodIndex;
         }
-        ns.tprint(`INFO ++methodIndex: ${methodIndex}`);
+        //  ns.print(`INFO ++methodIndex: ${methodIndex}`);
       }
 
       /**
@@ -187,24 +193,24 @@ export async function swarmManager(ns: NS) {
       if (getThreadsLeftForServer() <= 0 || maxServerThreads <= 0) {
         const nextHostIdx = getNextAvailableHostIndex();
         if (nextHostIdx >= 0) {
-          //  ns.tprint(`INFO: next host index: ${nextHostIdx}`);
+          //  ns.print(`INFO: next host index: ${nextHostIdx}`);
           if (nextHostIdx === hostIndex) {
-            ns.tprint(`ERROR: next host is current host?`);
+            ns.print(`ERROR: next host is current host?`);
           }
           hostIndex = nextHostIdx;
           await ns.sleep(100);
         } else {
           await ns.sleep(9_000);
-          ns.tprint(`WARN: sleeping for 9 sec and then cont`);
+          ns.print(`WARN: sleeping for 9 sec and then cont`);
           continue;
           //  ++hostIndex;
         }
-        ns.tprint(`INFO got next hostIndex: ${hostIndex}`);
+        //   ns.print(`INFO got next hostIndex: ${hostIndex}`);
         serverRamRemaining = getServerRamRemaining();
       }
       // if (getThreadsLeftForServer() <= 0 || maxServerThreads <= 0) {
       //   ++hostIndex;
-      //   ns.tprint(`INFO ++hostIndex: ${hostIndex}`);
+      //   ns.print(`INFO ++hostIndex: ${hostIndex}`);
       //   serverRamRemaining = getServerRamRemaining();
       // }
 
@@ -217,21 +223,21 @@ export async function swarmManager(ns: NS) {
       const shouldSleep = isStalling || getNetworkRamRemaining() < scriptRam * numServers * 10;
       if (isStalling) {
         // does this make sense to do?
-        ns.tprint(`INFO: threadCounter: ${JSON.stringify(threadCounter)}`);
+        //   ns.print(`INFO: threadCounter: ${JSON.stringify(threadCounter)}`);
         if (threadCounter.grow === 0 && threadCounter.hack === 0 && threadCounter.weaken === 0) {
           threadCounter = getThreadCounter();
-          ns.tprint('INFO [10sec sleep] resetting Thread Counter:', {
-            threadCounter: { ...threadCounter },
-          });
+          //  ns.print('INFO [10sec sleep] resetting Thread Counter:', {
+          //    threadCounter: { ...threadCounter },
+          //  });
         }
-        ns.tprint('INFO [10sec sleep] stalling out...');
+        //   ns.print('INFO [10sec sleep] stalling out...');
         //   methodIndex = 0; // is this necessary? helps keep the weaken up?
-        //   ns.tprint(`INFO should be using method: ${getCurrentMethod()}`);
+        //   ns.print(`INFO should be using method: ${getCurrentMethod()}`);
         await ns.sleep(10_000);
       } else if (shouldSleep) {
         await ns.sleep(1_000);
       }
-      ns.tprint(`HERE? ${host().name}`);
+      // ns.print(`HERE? ${host().name}`);
       // await ns.sleep(100);
       // await ns.sleep(1_000);
       continue;
@@ -249,10 +255,9 @@ export async function swarmManager(ns: NS) {
     const timeBuffer = shouldUseReducedTimeBuffer() ? 0 : data.timeBuffer;
     //  const timeBuffer = Math.min(data.timeBuffer, bufferForIncompleteCycle);
 
-    ns.tprint(
-      `[${getTimeString()}][${getCurrentMethod()}][${counter}]:[${numThreadsForServer}] ${host().name} against ${
-        target().name
-      }`,
+    ns.print(
+      `${getTimeString()} | ${getMethodText(getCurrentMethod())} | ` +
+        `${pad(counter)} | ${pad(numThreadsForServer)} | ${pad(host().name, 14)} » ${pad(target().name, 14)}`,
     );
     const timer = Date.now();
 
@@ -265,7 +270,7 @@ export async function swarmManager(ns: NS) {
 
     numThreadsLeftBeforeRest -= numThreadsForServer;
     if (numThreadsLeftBeforeRest <= 0) {
-      ns.tprint(`INFO: numThreadsLeftBeforeRest if`);
+      // ns.print(`INFO: numThreadsLeftBeforeRest if`);
       const threadData = getTargetData()[startCycleMethod];
       const waitTime =
         threadData.time +
@@ -274,11 +279,11 @@ export async function swarmManager(ns: NS) {
         (methodIndex % 3) * TIME_BETWEEN_ITERATIONS;
 
       const wt = shouldUseReducedTimeBuffer() ? 0 : waitTime;
-      ns.print('INFO: Wait Time for rest: ', wt);
+      // ns.print('INFO: Wait Time for rest: ', wt);
 
       if (wt) {
         await ns.sleep(wt);
-        ns.tprint(
+        ns.print(
           `INFO: MAX num utilized threads reached, waiting for ${msToTime(wt)} based off ${startCycleMethod} time.`,
         );
       }
@@ -288,7 +293,7 @@ export async function swarmManager(ns: NS) {
     const needToUseNextHost = serverRamRemaining <= 0;
     if (needToUseNextHost) {
       ++hostIndex;
-      ns.tprint(`INFO: needToUseNextHost if ${hostIndex}`);
+      // ns.print(`INFO: needToUseNextHost if ${hostIndex}`);
       serverRamRemaining = getServerRamRemaining();
 
       const isNewSererCycle = host().name === 'home';
@@ -301,27 +306,27 @@ export async function swarmManager(ns: NS) {
     const needToUseNextMethod = threadCounter[getCurrentMethod()] <= 0;
     if (needToUseNextMethod) {
       ++methodIndex;
-      ns.tprint(`INFO: needToUseNextMethod if: ${methodIndex}`);
+      // ns.print(`INFO: needToUseNextMethod if: ${methodIndex}`);
       const startingNewCycle = getCurrentMethod() === 'hack';
 
       if (startingNewCycle) {
         threadCounter = getThreadCounter();
-        ns.tprint('INFO starting new cycle - getting threadCounter', { ...threadCounter });
+        //   ns.print('INFO starting new cycle - getting threadCounter', { ...threadCounter });
         /**
          * TODO Here we can set logic to determine if we'll make it more than a single method
          */
         if (threadCounter[getCurrentMethod()] > numThreadsLeftBeforeRest) {
-          ns.tprint(`We could avoid waiting by ${data.timeBuffer}? (from ${getCurrentMethod()}'s time buffer)`);
+          ns.print(`We could avoid waiting by ${data.timeBuffer}? (from ${getCurrentMethod()}'s time buffer)`);
         }
       }
       // const sleepTime = 50;
       const sleepTime = Math.min(TIME_BETWEEN_ITERATIONS, Math.ceil(t.weaken.time / numTimesCanExecute / 4));
       // const sleepTime = Math.min(TIME_BETWEEN_ITERATIONS, Math.ceil(t.weaken.time / numTimesCanExecute));
-      ns.tprint(`INFO New HWG Cycle, sleeping for ${sleepTime / 1000}sec`);
+      // ns.print(`INFO New HWG Cycle, sleeping for ${sleepTime / 1000}sec`);
       await ns.sleep(sleepTime);
     }
 
-    //  ns.tprint(`INFO ${counter}`);
+    //  ns.print(`INFO ${counter}`);
     ++counter;
   }
 

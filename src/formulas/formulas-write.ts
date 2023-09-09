@@ -3,6 +3,8 @@ import { FORMULA_FILE_NAME } from './formulas.constants';
 import { Data } from './formulas.types';
 import { getNodeArray } from '@/get-node-array';
 
+const PERCENT = 0.5;
+
 export async function main(ns: NS) {
   const hosts = getNodeArray(ns).filter((host) => !host.includes('pserv-') && !host.includes('home'));
   const data: Data = {};
@@ -25,11 +27,12 @@ export async function main(ns: NS) {
     server.minDifficulty = ns.getServerMinSecurityLevel(host);
     server.moneyMax = moneyMax;
     server.serverGrowth = ns.getServerGrowth(host);
-    server.moneyAvailable = 0;
+    server.moneyAvailable = ns.getServerMaxMoney(host) * PERCENT;
     data[host].growThreads = ns.formulas.hacking.growThreads(server, player, moneyMax);
 
     server.hackDifficulty = ns.getServerMinSecurityLevel(host);
-    data[host].hackPercent = 1; //ns.formulas.hacking.hackPercent(server, player);
+    data[host].hackPercent = ns.formulas.hacking.hackPercent(server, player) * 100;
+    //  data[host].hackPercent = 1; //ns.formulas.hacking.hackPercent(server, player);
   });
 
   ns.write(FORMULA_FILE_NAME, JSON.stringify(data), 'w');
