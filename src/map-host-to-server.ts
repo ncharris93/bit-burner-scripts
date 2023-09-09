@@ -30,7 +30,7 @@ export const mapHostToServer = (ns: NS, hostnames = getNodeArray(ns)) => {
       canHack: ns.getServerRequiredHackingLevel(host) <= hackingLevel && ns.hasRootAccess(host),
     };
 
-    ns.enableLog('ALL');
+    //  ns.enableLog('ALL');
     return res;
   });
 };

@@ -3,6 +3,18 @@ import { NS } from '@ns';
 const ArgsOpts = ['hack', 'weaken', 'grow'] as const;
 type Args = (typeof ArgsOpts)[number];
 
+export const colors = {
+  red: `\u001b[31m`, //red
+  orange: `\u001b[38;5;202m`, //orange
+  yellow: `\u001b[33m`, //yellow
+  white: `\u001b[37m`, //white
+  lightGreen: `\u001b[38;5;121m`, // light green
+  green: `\u001b[32m`, //green
+  green2: `\u001b[38;5;82m`, //green
+  cyan: `\u001b[36m`, //cyan
+  reset: '\u001b[0m',
+} as const;
+
 const getTimeString = () => {
   const d = new Date();
   const hours = d.getHours() % 12;
@@ -12,6 +24,13 @@ const getTimeString = () => {
   const sec = d.getSeconds();
   const s = sec < 10 ? '0' + sec : sec;
   return `${h}:${m}:${s}`;
+};
+
+export const Log = {
+  info: (msg: string) => `${colors.cyan}${msg}${colors.reset}`,
+  debug: (msg: string) => `${colors.green2}${msg}${colors.reset}`,
+  warn: (msg: string) => `${colors.orange}${msg}${colors.reset}`,
+  error: (msg: string) => `${colors.red}${msg}${colors.reset}`,
 };
 
 /**
@@ -61,17 +80,18 @@ export async function main(ns: NS) {
   const meta = `[${getTimeString()}][${pad(host)} => ${pad(target)}][${iterationID}]`;
   if (type === 'hack') {
     if (res === 0) {
-      return ns.tprint(`WARN: ${meta} Hack Waisted Cycles :( $${res}`);
+      return ns.print(Log.warn(`${meta} Hack Waisted Cycles :( $${res}`));
+      // return ns.print(`WARN: ${meta} Hack Waisted Cycles :( $${res}`);
     }
     if (!res) {
-      return ns.tprint(`ERROR: ${meta} Hack Failure`);
+      return ns.print(`ERROR: ${meta} Hack Failure`);
     }
-    ns.tprint(`SUCCESS: ${meta} Hack Success: $${ns.formatNumber(res)}`);
-    //  ns.tprint(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);
+    ns.print(Log.info(`${meta} Hack Success: $${ns.formatNumber(res)}`));
+    //  ns.print(`SUCCESS: [${host} -> ${target}][${iterationID}] Hack Success: ${ns.formatNumber(parseInt(res))}`);
     //  console.log('typeof res? ', typeof res);
 
     //   if(!res) {
-    //    ns.tprint(`ERROR: [${host} -> ${target}] Hack Failure $${res}`)
+    //    ns.print(`ERROR: [${host} -> ${target}] Hack Failure $${res}`)
     // }
     //  console.log(
     //    `[${iterationID}] [${host}][${target}]:${endTime - startTime} HACK ${
@@ -80,7 +100,7 @@ export async function main(ns: NS) {
     //  );
     timer = Date.now();
   } else {
-    return ns.tprint(`SUCCESS: ${meta} HWG: ${type} $${res}`);
+    return ns.print(Log.info(`${meta} HWG: ${type} $${res}`));
   }
 }
 
