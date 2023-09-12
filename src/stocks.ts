@@ -166,7 +166,7 @@ const logPollingData = (ns: NS, pollingData: PollData) => {
       const trailingSpacer = ' '.repeat(6 - `${formattedTrend}`.length + (formattedTrend < 0 ? 1 : 0));
       return `${key}:${leadingSpacer}${color}${formattedTrend}%${reset}${trailingSpacer}/min`;
     });
-  console.log(log);
+  //   console.log(log);
   log.forEach((item) => ns.print(item));
 };
 

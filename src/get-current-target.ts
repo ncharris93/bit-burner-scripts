@@ -4,7 +4,7 @@ import { getNodeArray } from './get-node-array';
 import { NCH_Server, mapHostToServer } from './map-host-to-server';
 import { isNewGame } from './utils';
 
-export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns)): NCH_Server | undefined => {
+export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns)): NCH_Server => {
   const myHackLevel = ns.getHackingLevel();
 
   const serverList = mapHostToServer(ns, hostnames);
@@ -30,7 +30,7 @@ export const getCurrentTarget = (ns: NS, hostnames: string[] = getNodeArray(ns))
   }, {} as NCH_Server);
 
   const objectIsEmpty = Object.keys(idealTarget).length === 0;
-  const res = objectIsEmpty ? undefined : idealTarget;
+  const res: NCH_Server = objectIsEmpty ? mapHostToServer(ns, ['n00dles'])[0] : idealTarget;
 
   return res;
 };

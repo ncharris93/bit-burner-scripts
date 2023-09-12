@@ -50,7 +50,7 @@ export const getIdealGrowThreadCountForOneIteration = (ns: NS, host: string): Id
   const tc = ns.formulas.hacking.growThreads(ns.getServer(host), ns.getPlayer(), ns.getServerMaxMoney(host));
 
   return {
-    threadCount: tc,
+    threadCount: Math.max(tc, 1),
     time: growTime,
     timeBuffer: 0,
   };

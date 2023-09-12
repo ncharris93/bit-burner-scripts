@@ -200,7 +200,7 @@ export async function serverUpgradeManager(ns: NS) {
   while (getPurchasedServers().length > ns.getPurchasedServerLimit() || !areAllServersAtMax()) {
     while (canPurchaseServer()) {
       const lowestPowerPServ = getLowestPserv();
-      await ns.sleep(1000);
+      // await ns.sleep(1000);
       const maxRamForPurchasingServer = getMaxUpgradableRam();
       ns.tprint(`INFO: Upgrading ${lowestPowerPServ} to ${maxRamForPurchasingServer}`);
       // ns.tprint('INFO: upgrade this host to this ram', { lowestPowerPServ, maxRamForPurchasingServer });
@@ -230,7 +230,7 @@ export async function serverUpgradeManager(ns: NS) {
           successRename ? `created: ${newName}` : `Failed: ${newName}`
         }`,
       );
-      await ns.sleep(10_000);
+      // await ns.sleep(10_000);
     }
     ns.print('Sleeping for 60 seconds');
     await ns.sleep(60_000);
