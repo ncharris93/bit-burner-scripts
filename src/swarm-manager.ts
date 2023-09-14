@@ -10,7 +10,7 @@ import { colors } from './utils/colors';
 
 const getMethodText = (method: HWG) => {
   const color = method === 'grow' ? colors.cyan : method === 'hack' ? colors.green : colors.white;
-  return `${color}${method.padStart(7, ' ')}${colors.reset}`;
+  return `${color}${method.padStart('weaken'.length, ' ')}${colors.reset}`;
 };
 
 /**
@@ -151,6 +151,13 @@ export async function swarmManager(ns: NS) {
     //    return;
     //  }
 
+    if (networkRamRemaining < scriptRam) {
+      ns.print(`Network ram to low (${networkRamRemaining}) sleeping 10 sec`);
+      networkRamRemaining = getNetworkRamRemaining();
+      await ns.sleep(10_000);
+      continue;
+    }
+
     /**
      * TEMP
      */
@@ -200,8 +207,8 @@ export async function swarmManager(ns: NS) {
           hostIndex = nextHostIdx;
           await ns.sleep(100);
         } else {
-          await ns.sleep(9_000);
-          ns.print(`WARN: sleeping for 9 sec and then cont`);
+          await ns.sleep(5_000);
+          //  ns.print(`WARN: sleeping for 9 sec and then cont`);
           continue;
           //  ++hostIndex;
         }
@@ -256,8 +263,8 @@ export async function swarmManager(ns: NS) {
     //  const timeBuffer = Math.min(data.timeBuffer, bufferForIncompleteCycle);
 
     ns.print(
-      `${getTimeString()} | ${getMethodText(getCurrentMethod())} | ` +
-        `${pad(counter)} | ${pad(numThreadsForServer)} | ${pad(host().name, 14)} » ${pad(target().name, 14)}`,
+      `${getTimeString()} | ${pad(counter)} | ${getMethodText(getCurrentMethod())} | ` +
+        ` ${pad(numThreadsForServer)} | ${host().name.padEnd(17, ' ')} » ${target().name}`,
     );
     const timer = Date.now();
 
@@ -290,7 +297,7 @@ export async function swarmManager(ns: NS) {
       numThreadsLeftBeforeRest = numThreadsForFullCycle;
     }
 
-    const needToUseNextHost = serverRamRemaining <= 0;
+    const needToUseNextHost = serverRamRemaining < 1;
     if (needToUseNextHost) {
       ++hostIndex;
       // ns.print(`INFO: needToUseNextHost if ${hostIndex}`);
@@ -327,7 +334,11 @@ export async function swarmManager(ns: NS) {
     }
 
     //  ns.print(`INFO ${counter}`);
+
     ++counter;
+    if (counter % 500 === 0) {
+      ns.print(`Counter: ${counter}`);
+    }
   }
 
   console.log('ERROR Whelp...this is awkward...');
